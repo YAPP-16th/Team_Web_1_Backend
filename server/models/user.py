@@ -4,6 +4,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
+from server.models.category import Category
+
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password, **extra_fields):
@@ -46,6 +48,8 @@ class User(AbstractUser):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    categories = serializers.PrimaryKeyRelatedField(many=True, queryset=Category.objects.all())
+
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['id', 'email', 'username', 'categories', 'date_joined']
