@@ -1,10 +1,10 @@
+from django.contrib.auth import authenticate
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-
-from server.models.category import Category
+from rest_framework_jwt.settings import api_settings
 
 
 class CustomUserManager(BaseUserManager):
@@ -38,6 +38,7 @@ class CustomUserManager(BaseUserManager):
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=50)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', ]
 
@@ -46,10 +47,45 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
 
 class UserSerializer(serializers.ModelSerializer):
-    categories = serializers.PrimaryKeyRelatedField(many=True, queryset=Category.objects.all())
+    categories = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    password = serializers.CharField(min_length=6, write_only=True, required=True)
+    token = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'categories', 'date_joined']
+        fields = ['id', 'token', 'email', 'username', 'password', 'categories', 'date_joined']
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
+
+    def get_token(self, instance):
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(instance)
+        token = jwt_encode_handler(payload)
+        return token
+
+
+class UserSignInSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(min_length=6)
+
+    def validate(self, attrs):
+        user = authenticate(username=attrs['email'], password=attrs['password'])
+
+        if not user:
+            raise serializers.ValidationError('Incorrect email or password.')
+
+        if not user.is_active:
+            raise serializers.ValidationError('User is disabled.')
+
+        return {'user': user}
