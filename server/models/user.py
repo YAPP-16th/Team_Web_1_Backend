@@ -56,7 +56,7 @@ class User(AbstractUser):
 
 class UserSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    password = serializers.CharField(min_length=6, write_only=True, required=True)
+    password = serializers.CharField(min_length=6, write_only=True)
     token = serializers.SerializerMethodField()
 
     class Meta:
