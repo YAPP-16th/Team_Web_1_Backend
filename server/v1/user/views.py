@@ -1,19 +1,21 @@
 import random
 import string
 
-import requests
 from django.contrib.auth import login, logout
 from rest_framework import generics, status, views
+from rest_framework import permissions
 from rest_framework.response import Response
 
+from server.models.token import BlackListedToken
 from server.models.user import User, UserSerializer, UserSignInSerializer
-from server.permissions import IsAuthenticatedAndOwner
+from server.permissions import IsObjectMe, IsNotBlacklistedToken, GoogleAccessToken
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticatedAndOwner, ]
+    permission_classes = [permissions.IsAuthenticated, IsObjectMe]
+    # TODO 현재 email도 수정할 수 있는데 serializer를 분리해서 email 필드는 수정불가하도록해야함.
 
 
 class SignUpView(generics.CreateAPIView):
@@ -39,8 +41,15 @@ class SignInView(views.APIView):
 
 
 class SignoutView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, IsNotBlacklistedToken]
+
     def post(self, request):
+        '''
+        로그아웃하면 해당토큰을 blacklisted token db에 넣어서 다시 사용할 수 없게 만든다.
+        '''
         logout(self.request)
+        token = request.META.get('HTTP_AUTHORIZATION')
+        BlackListedToken.objects.create(token=token)
         return Response({'logout': True})
 
 
@@ -54,21 +63,16 @@ class GoogleSignUpView(generics.CreateAPIView):
         return ''.join([random.choice(string_pool) for i in range(12)])
 
     def post(self, request, *args, **kwargs):
-        payload = {'access_token': request.data.get("token")}  # validate the token
-        # https://developers.google.com/identity/sign-in/web/backend-auth
-        # https: // oauth2.googleapis.com / tokeninfo
-        response = requests.get('https://www.googleapis.com/oauth2/v2/userinfo', params=payload)
-        response = response.json()
-
-        if 'error' in response:
+        response = GoogleAccessToken(request.data.get("token")).is_valid()
+        if not response:
             content = {'message': 'wrong google token / this google token is already expired.'}
             return Response(content, status=status.HTTP_401_UNAUTHORIZED)
 
-        request.data = {
-            'username': response['email'].split('@')[0],
-            'email': response['email'],
-            'password': self.make_random_string_for_password()
-        }
+        request.data['username'] = response['email'].split('@')[0]
+        request.data['email'] = response['email']
+        request.data['password'] = self.make_random_string_for_password()
+        print(request.data)
+        print(request)
         self.create(self, request, *args, **kwargs)
 
     def perform_create(self, serializer):
@@ -81,13 +85,8 @@ class GoogleSignInView(views.APIView):
     authentication_classes = []
 
     def post(self, request):
-        payload = {'access_token': request.data.get("token")}  # validate the token
-        # https://developers.google.com/identity/sign-in/web/backend-auth
-        # https: // oauth2.googleapis.com / tokeninfo
-        response = requests.get('https://www.googleapis.com/oauth2/v2/userinfo', params=payload)
-        response = response.json()
-
-        if 'error' in response:
+        response = GoogleAccessToken(request.data.get("token")).is_valid()
+        if not response:
             content = {'message': 'wrong google token / this google token is already expired.'}
             return Response(content, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -96,5 +95,5 @@ class GoogleSignInView(views.APIView):
             login(self.request, user)
             return Response(UserSerializer(user).data)
         except User.DoesNotExist:
-            content = {'message': 'wrong google token / this google token is already expired.'}
-            return Response(content, status=status.HTTP_401_UNAUTHORIZED)
+            content = {'message': '해당 User는 존재하지 않습니다.'}
+            return Response(content, status=status.HTTP_404_NOT_FOUND)
