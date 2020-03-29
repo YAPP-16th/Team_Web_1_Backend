@@ -18,8 +18,8 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return obj.owner == request.user
 
 
-class IsAuthenticatedAndOwner(permissions.BasePermission):
-    message = 'You must be the owner of this object.'
+class IsAuthenticatedAndIsObjectMe(permissions.BasePermission):
+    message = '해당 토큰으로 참조할 수 없습니다.'
 
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated
@@ -28,7 +28,7 @@ class IsAuthenticatedAndOwner(permissions.BasePermission):
         return obj == request.user
 
 
-class IsTokenValid(permissions.BasePermission):
+class IsNotBlacklistedToken(permissions.BasePermission):
     message = '이미 logout 된 토큰입니다.'
 
     def has_permission(self, request, view):
