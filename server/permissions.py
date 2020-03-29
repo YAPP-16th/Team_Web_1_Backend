@@ -1,3 +1,4 @@
+import requests
 from rest_framework import permissions
 
 from server.models.token import BlackListedToken
@@ -40,3 +41,18 @@ class IsNotBlacklistedToken(permissions.BasePermission):
         except BlackListedToken.DoesNotExist:
             return True
         return True
+
+
+class GoogleAccessToken:
+    def __init__(self, token):
+        self.token = token
+
+    def is_valid(self):
+        # https://developers.google.com/identity/sign-in/web/backend-auth
+        payload = {'id_token': self.token}  # validate the token
+        response = requests.get('https://oauth2.googleapis.com/tokeninfo', params=payload)
+        response = response.json()
+
+        if 'error' in response or 'email' not in response:
+            return False
+        return response
