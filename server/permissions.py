@@ -18,11 +18,11 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         return obj.owner == request.user
 
 
-class IsAuthenticatedAndIsObjectMe(permissions.BasePermission):
+class IsObjectMe(permissions.BasePermission):
     message = '해당 토큰으로 참조할 수 없습니다.'
 
-    def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated
+    # def has_permission(self, request, view):
+    #     return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
         return obj == request.user
