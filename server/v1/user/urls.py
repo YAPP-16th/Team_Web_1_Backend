@@ -1,7 +1,7 @@
 from django.urls import path
-from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token, verify_jwt_token
 
-from .views import UserDetail, SignUpView, SignInView, SignoutView, GoogleSignUpView, GoogleSignInView
+from .views import (UserDetail, SignUpView, SignInView, SignoutView, GoogleSignUpView, GoogleSignInView,
+                    CustomObtainJSONWebToken, CustomVerifyJSONWebToken, CustomRefreshJSONWebToken)
 
 app_name = 'user'
 urlpatterns = [
@@ -14,7 +14,7 @@ urlpatterns = [
     path('sign-in/', SignInView.as_view(), name='sign_in'),
     path('sign-out/', SignoutView.as_view(), name='sign_out'),
 
-    path('token/', obtain_jwt_token),  # JWT 토큰 획득
-    path('token/refresh/', refresh_jwt_token),  # JWT 토큰 갱신
-    path('token/verify/', verify_jwt_token),  # JWT 토큰 확인
+    path('token/', CustomObtainJSONWebToken.as_view(), name='obtain_json_web_token'),  # JWT 토큰 획득
+    path('token/refresh/', CustomRefreshJSONWebToken.as_view()),  # JWT 토큰 갱신
+    path('token/verify/', CustomVerifyJSONWebToken.as_view()),  # JWT 토큰 확인
 ]

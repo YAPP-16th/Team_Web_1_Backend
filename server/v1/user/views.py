@@ -5,10 +5,13 @@ from django.contrib.auth import login, logout
 from rest_framework import generics, status, views
 from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework_jwt.views import ObtainJSONWebToken, VerifyJSONWebToken, RefreshJSONWebToken
 
 from server.models.token import BlackListedToken
 from server.models.user import User, UserSerializer, UserSignInSerializer
 from server.permissions import IsObjectMe, IsNotBlacklistedToken, GoogleAccessToken
+from server.v1.user.custom_serializer import (CustomJSONWebTokenSerializer, CustomVerifyJSONWebTokenSerializer,
+                                              CustomRefreshJSONWebTokenSerializer)
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -60,7 +63,7 @@ class GoogleSignUpView(generics.CreateAPIView):
 
     def make_random_string_for_password(self):
         string_pool = string.ascii_letters + string.digits
-        return ''.join([random.choice(string_pool) for i in range(12)])
+        return ''.join([random.choice(string_pool) for i in range(26)])
 
     def post(self, request, *args, **kwargs):
         response = GoogleAccessToken(request.data.get("token")).is_valid()
@@ -68,12 +71,14 @@ class GoogleSignUpView(generics.CreateAPIView):
             content = {'message': 'wrong google token / this google token is already expired.'}
             return Response(content, status=status.HTTP_401_UNAUTHORIZED)
 
-        request.data['username'] = response['email'].split('@')[0]
-        request.data['email'] = response['email']
+        user_email = response['email']
+        request.data['username'] = response.get('name', user_email.split('@')[0])
+        request.data['email'] = user_email
         request.data['password'] = self.make_random_string_for_password()
-        print(request.data)
-        print(request)
-        self.create(self, request, *args, **kwargs)
+        request.data['sign_up_type'] = 'google'
+        request.data.pop('token', None)
+
+        return self.create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -97,3 +102,15 @@ class GoogleSignInView(views.APIView):
         except User.DoesNotExist:
             content = {'message': '해당 User는 존재하지 않습니다.'}
             return Response(content, status=status.HTTP_404_NOT_FOUND)
+
+
+class CustomObtainJSONWebToken(ObtainJSONWebToken):
+    serializer_class = CustomJSONWebTokenSerializer
+
+
+class CustomVerifyJSONWebToken(VerifyJSONWebToken):
+    serializer_class = CustomVerifyJSONWebTokenSerializer
+
+
+class CustomRefreshJSONWebToken(RefreshJSONWebToken):
+    serializer_class = CustomRefreshJSONWebTokenSerializer
