@@ -162,7 +162,7 @@ class UserTest(TestCase):
         '''
         로그아웃 실패 케이스
         1) 로그아웃했는데 또 로그아웃(이미 블랙리스트된 토큰인데 재 로그아웃시도)
-        2) 만료된 토큰으로 로그아웃
+        2) 만료된 토큰으로 로그아웃 (클라이언트가 토큰을 리프레시하고 재 요청하는것으로)
         3) 잘못된 토큰으로 로그아웃
         '''
         params = {
@@ -326,54 +326,133 @@ class UserTest(TestCase):
         pprint(response.json())
         self.assertEqual(response.status_code, 400)
 
-# 구글 회원가입
-# 구글 로그아웃
-# 토큰
-# 시리얼라이저 공부
+    def test_success_google_sign_up(self):
+        '''
+        google 회원가입 성공 케이스
+        '''
+        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
 
-# def test_obtain_jwt(self):
-#     '''
-#     회원가입할떄 얻은 유저의 jwt과 obtain_jwt이 같은 jwt을 반환하는지 test
-#     :return:
-#     '''
-#     params = {
-#         "email": "test@naver.com",
-#         "password": "123123",
-#         "username": "123123"
-#     }
-#     response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-#     jwt_token = response.json()['token']
-#     response = self.client.post('/api/v1/user/token/', params, format='json')
-#
-#     self.assertEqual(jwt_token, response.json()['token'])
-#     # 같다!
-#
-# def test_verify_jwt(self):
-#     params = {
-#         "email": "test@naver.com",
-#         "password": "123123",
-#         "username": "123123"
-#     }
-#     response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-#     jwt_token = response.json()['token']
-#     token = {
-#         'token': jwt_token
-#     }
-#     response = self.client.post('/api/v1/user/token/verify/', token, format='json')
-#     print(response.json())
-#     self.assertEqual(jwt_token, response.json()['token'])
-# def test_refresh_jwt(self):
-#        # params = {
-#        #     "email": "test@naver.com",
-#        #     "password": "123123",
-#        #     "username": "123123"
-#        # }
-#        # response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-#        # jwt_token = response.json()['token']
-#        token = {
-#            'token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3RAbmF2ZXIuY29tIiwiZXhwIjoxNTg1Mjk1MjQzLCJlbWFpbCI6InRlc3RAbmF2ZXIuY29tIiwib3JpZ19pYXQiOjE1ODUyOTQ5NDN9.MXK8Kv0gIEO84r1dQRn4E4r_EKjhyP9GACu-e5SJyEA'
-#        }
-#        response = self.client.post('/api/v1/user/token/refresh/', token, format='json')
-#        print(response.json())
-#        # 토큰이 만료되면 새로 얻어야하나????
-#        self.assertEqual(token['token'], response.json()['token'])
+        params = {
+            "token": token,
+        }
+        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+        pprint(response.json())
+
+    def test_fail_google_sign_up(self):
+        '''
+        google 회원가입 실패 케이스
+        1) 토큰이 유효하지 않음.
+        2) 이미 가입된 유저
+        '''
+        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
+
+        params = {
+            "token": token + '1',
+        }
+        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+        pprint(response.json())
+
+        self.assertEqual(response.status_code, 401)
+
+        params = {
+            "token": token,
+        }
+        self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+        params = {
+            "token": token,
+        }
+        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+        pprint(response.json())
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_success_google_sign_in(self):
+        '''
+        google 로그인 성공 케이스
+        '''
+        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
+
+        params = {
+            "token": token
+        }
+        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+        response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
+        pprint(response.json())
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_fail_google_sign_in(self):
+        '''
+        google 로그인 실패 케이스
+        1) 토큰이 유효하지않음
+        2) 유저가 없음
+        '''
+        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
+
+        params = {
+            "token": token
+        }
+        # response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+        # params = {
+        #     "token": token+'1'
+        # }
+        # response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
+        # pprint(response.json())
+        # self.assertEqual(response.status_code, 401)
+
+        response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
+        pprint(response.json())
+        self.assertEqual(response.status_code, 404)
+
+    # def test_obtain_jwt(self):
+    #     '''
+    #     회원가입할떄 얻은 유저의 jwt과 obtain_jwt이 같은 jwt을 반환하는지 test
+    #     '''
+    #     params = {
+    #         "email": "test@naver.com",
+    #         "password": "123123",
+    #         "username": "123123"
+    #     }
+    #     # response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+    #     # pprint(response.json())
+    #     # from time import sleep
+    #     # sleep(10)
+    #     # jwt_token = response.json()['token']
+    #     response = self.client.post('/api/v1/user/token/', params, format='json')
+    #     pprint(response.json())
+        # self.assertEqual(jwt_token, response.json()['token'])
+        # 같다!
+
+    # def test_verify_jwt(self):
+    #     params = {
+    #         "email": "test@naver.com",
+    #         "password": "123123",
+    #         "username": "123123"
+    #     }
+    #     response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+    #     jwt_token = response.json()['token']
+    #     token = {
+    #         'token': jwt_token
+    #     }
+    #     response = self.client.post('/api/v1/user/token/verify/', token, format='json')
+    #     print(response.json())
+    #     self.assertEqual(jwt_token, response.json()['token'])
+    #
+    # def test_refresh_jwt(self):
+    #     # params = {
+    #     #     "email": "test@naver.com",
+    #     #     "password": "123123",
+    #     #     "username": "123123"
+    #     # }
+    #     # response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+    #     # jwt_token = response.json()['token']
+    #     token = {
+    #         'token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3RAbmF2ZXIuY29tIiwiZXhwIjoxNTg1Mjk1MjQzLCJlbWFpbCI6InRlc3RAbmF2ZXIuY29tIiwib3JpZ19pYXQiOjE1ODUyOTQ5NDN9.MXK8Kv0gIEO84r1dQRn4E4r_EKjhyP9GACu-e5SJyEA'
+    #     }
+    #     response = self.client.post('/api/v1/user/token/refresh/', token, format='json')
+    #     print(response.json())
+    #     # 토큰이 만료되면 새로 얻어야하나????
+    #     self.assertEqual(token['token'], response.json()['token'])
+
+# 시리얼이저 공부
+# api 문서
