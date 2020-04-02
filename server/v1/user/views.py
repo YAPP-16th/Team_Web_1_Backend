@@ -5,12 +5,13 @@ from django.contrib.auth import login, logout
 from rest_framework import generics, status, views
 from rest_framework import permissions
 from rest_framework.response import Response
-from rest_framework_jwt.views import ObtainJSONWebToken
+from rest_framework_jwt.views import ObtainJSONWebToken, VerifyJSONWebToken, RefreshJSONWebToken
 
 from server.models.token import BlackListedToken
 from server.models.user import User, UserSerializer, UserSignInSerializer
 from server.permissions import IsObjectMe, IsNotBlacklistedToken, GoogleAccessToken
-from .custom_serializer import JSONWebTokenSerializer
+from server.v1.user.custom_serializer import (CustomJSONWebTokenSerializer, CustomVerifyJSONWebTokenSerializer,
+                                              CustomRefreshJSONWebTokenSerializer)
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -103,8 +104,13 @@ class GoogleSignInView(views.APIView):
             return Response(content, status=status.HTTP_404_NOT_FOUND)
 
 
-# class CustomObtainJSONWebToken(ObtainJSONWebToken):
-#     """
-#     Override the default JWT ObtainJSONWebToken view to use the custom serializer
-#     """
-#     serializer_class = JSONWebTokenSerializer
+class CustomObtainJSONWebToken(ObtainJSONWebToken):
+    serializer_class = CustomJSONWebTokenSerializer
+
+
+class CustomVerifyJSONWebToken(VerifyJSONWebToken):
+    serializer_class = CustomVerifyJSONWebTokenSerializer
+
+
+class CustomRefreshJSONWebToken(RefreshJSONWebToken):
+    serializer_class = CustomRefreshJSONWebTokenSerializer
