@@ -36,8 +36,13 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    SIGNUP_TYPES = (
+        ('normal', 'normal'),
+        ('google', 'google'),
+    )
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=50)
+    sign_up_type = models.CharField(max_length=10, choices=SIGNUP_TYPES, default='normal')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', ]
@@ -61,7 +66,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'token', 'email', 'username', 'password', 'categories', 'date_joined']
+        fields = ['id', 'token', 'sign_up_type', 'email', 'username', 'password', 'categories', 'date_joined']
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
