@@ -404,55 +404,49 @@ class UserTest(TestCase):
         pprint(response.json())
         self.assertEqual(response.status_code, 404)
 
-    # def test_obtain_jwt(self):
-    #     '''
-    #     회원가입할떄 얻은 유저의 jwt과 obtain_jwt이 같은 jwt을 반환하는지 test
-    #     '''
-    #     params = {
-    #         "email": "test@naver.com",
-    #         "password": "123123",
-    #         "username": "123123"
-    #     }
-    #     # response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-    #     # pprint(response.json())
-    #     # from time import sleep
-    #     # sleep(10)
-    #     # jwt_token = response.json()['token']
-    #     response = self.client.post('/api/v1/user/token/', params, format='json')
-    #     pprint(response.json())
-        # self.assertEqual(jwt_token, response.json()['token'])
-        # 같다!
+    def test_obtain_jwt(self):
+        '''
+        회원가입할떄 얻은 유저의 jwt과 obtain_jwt이 같은 jwt을 반환하는지 test
+        '''
+        params = {
+            "email": "test@naver.com",
+            "password": "123123",
+            "username": "123123"
+        }
+        response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+        pprint(response.json())
+        jwt_token = response.json()['token']
 
-    # def test_verify_jwt(self):
-    #     params = {
-    #         "email": "test@naver.com",
-    #         "password": "123123",
-    #         "username": "123123"
-    #     }
-    #     response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-    #     jwt_token = response.json()['token']
-    #     token = {
-    #         'token': jwt_token
-    #     }
-    #     response = self.client.post('/api/v1/user/token/verify/', token, format='json')
-    #     print(response.json())
-    #     self.assertEqual(jwt_token, response.json()['token'])
-    #
-    # def test_refresh_jwt(self):
-    #     # params = {
-    #     #     "email": "test@naver.com",
-    #     #     "password": "123123",
-    #     #     "username": "123123"
-    #     # }
-    #     # response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-    #     # jwt_token = response.json()['token']
-    #     token = {
-    #         'token': 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3RAbmF2ZXIuY29tIiwiZXhwIjoxNTg1Mjk1MjQzLCJlbWFpbCI6InRlc3RAbmF2ZXIuY29tIiwib3JpZ19pYXQiOjE1ODUyOTQ5NDN9.MXK8Kv0gIEO84r1dQRn4E4r_EKjhyP9GACu-e5SJyEA'
-    #     }
-    #     response = self.client.post('/api/v1/user/token/refresh/', token, format='json')
-    #     print(response.json())
-    #     # 토큰이 만료되면 새로 얻어야하나????
-    #     self.assertEqual(token['token'], response.json()['token'])
+        response = self.client.post('/api/v1/user/token/', params, format='json')
+        pprint(response.json())
+        self.assertEqual(jwt_token, response.json()['token'])
 
-# 시리얼이저 공부
-# api 문서
+    def test_verify_jwt(self):
+        params = {
+            "email": "test@naver.com",
+            "password": "123123",
+            "username": "123123"
+        }
+        response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+        jwt_token = response.json()['token']
+        token = {
+            'token': jwt_token
+        }
+        response = self.client.post('/api/v1/user/token/verify/', token, format='json')
+        print(response.json())
+        self.assertEqual(jwt_token, response.json()['token'])
+
+    def test_refresh_jwt(self):
+        params = {
+            "email": "test@naver.com",
+            "password": "123123",
+            "username": "123123"
+        }
+        response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+        jwt_token = response.json()['token']
+        token = {
+            'token': jwt_token
+        }
+        response = self.client.post('/api/v1/user/token/refresh/', token, format='json')
+        pprint(response.json())
+        self.assertEqual(token['token'], response.json()['token'])
