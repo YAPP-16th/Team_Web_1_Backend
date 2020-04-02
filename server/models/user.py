@@ -88,9 +88,9 @@ class UserSignInSerializer(serializers.Serializer):
         user = authenticate(username=attrs['email'], password=attrs['password'])
 
         if not user:
-            raise serializers.ValidationError('Incorrect email or password.')
+            raise serializers.ValidationError('이메일 혹은 패스워드가 올바르지 않습니다.')
 
         if not user.is_active:
-            raise serializers.ValidationError('User is disabled.')
+            raise serializers.ValidationError('해당 유저는 비활성 상태입니다.')
 
         return {'user': user}
