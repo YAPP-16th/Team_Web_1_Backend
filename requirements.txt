@@ -2,3 +2,4 @@ django==3.0.3
 djangorestframework==3.11.0
 djangorestframework-jwt=1.11.0
 django-cors-headers==3.2.1
+drf-yasg==1.17.1
