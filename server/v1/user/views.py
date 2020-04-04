@@ -15,13 +15,35 @@ from server.v1.user.custom_serializer import (CustomJSONWebTokenSerializer, Cust
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    # TODO 현재 email도 수정할 수 있는데 serializer를 분리해서 email 필드는 수정불가하도록해야함.
+    """
+        ## `JWT 필요`
+        ## Headers
+            - Authorization : JWT <토큰>
+        ## Path Params
+            - id : 유저 id(이메일주소 X)
+        ## Body(UPDATE 요청 시)
+            - username : 유저네임
+            - password : 패스워드(6자리 이상)
+    """
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, IsObjectMe]
-    # TODO 현재 email도 수정할 수 있는데 serializer를 분리해서 email 필드는 수정불가하도록해야함.
 
 
 class SignUpView(generics.CreateAPIView):
+    """
+        일반 회원가입 API
+
+        ---
+        ## `JWT 불필요`
+        ## Headers
+            - Content type : application/json
+        ## Body
+            - email : 이메일
+            - username : 유저네임
+            - password : 패스워드(6자리 이상)
+    """
     serializer_class = UserSerializer
     authentication_classes = []
     permission_classes = []
@@ -32,6 +54,17 @@ class SignUpView(generics.CreateAPIView):
 
 
 class SignInView(views.APIView):
+    """
+        일반 로그인 API
+
+        ---
+        ## `JWT 불필요`
+        ## Headers
+            - Content type : application/json
+        ## Body
+            - email : 이메일
+            - password : 패스워드(6자리 이상)
+    """
     permission_classes = []
     authentication_classes = []
 
@@ -44,12 +77,17 @@ class SignInView(views.APIView):
 
 
 class SignoutView(views.APIView):
+    """
+        일반 로그아웃 API
+
+        ---
+        ## `JWT 필요`
+        ## Headers
+            - Authorization : JWT <토큰>
+    """
     permission_classes = [permissions.IsAuthenticated, IsNotBlacklistedToken]
 
     def post(self, request):
-        '''
-        로그아웃하면 해당토큰을 blacklisted token db에 넣어서 다시 사용할 수 없게 만든다.
-        '''
         logout(self.request)
         token = request.META.get('HTTP_AUTHORIZATION')
         BlackListedToken.objects.create(token=token)
@@ -57,6 +95,17 @@ class SignoutView(views.APIView):
 
 
 class GoogleSignUpView(generics.CreateAPIView):
+    """
+        구글 회원가입 API
+
+        ---
+        ## `JWT 불필요`
+        ## `email, username, password 불필요`
+        ## Headers
+            - Content type : application/json
+        ## Body
+            - token : 구글 access token
+    """
     serializer_class = UserSerializer
     authentication_classes = []
     permission_classes = []
@@ -86,6 +135,17 @@ class GoogleSignUpView(generics.CreateAPIView):
 
 
 class GoogleSignInView(views.APIView):
+    """
+        구글 로그인 API
+
+        ---
+        ## `JWT 불필요`
+        ## `email, password 불필요`
+        ## Headers
+            - Content type : application/json
+        ## Body
+            - token : 구글 access token
+    """
     permission_classes = []
     authentication_classes = []
 
@@ -105,12 +165,43 @@ class GoogleSignInView(views.APIView):
 
 
 class CustomObtainJSONWebToken(ObtainJSONWebToken):
+    """
+        JWT 발급 API
+
+        ---
+        ## `JWT 불필요`
+        ## Headers
+            - Content type : application/json
+        ## Body
+            - email : 이메일
+            - password : 패스워드(6자리 이상)
+    """
     serializer_class = CustomJSONWebTokenSerializer
 
 
 class CustomVerifyJSONWebToken(VerifyJSONWebToken):
+    """
+        JWT 검증 API
+
+        ---
+        ## `JWT 불필요`
+        ## Headers
+            - Content type : application/json
+        ## Body
+            - token : <JWT 토큰>
+    """
     serializer_class = CustomVerifyJSONWebTokenSerializer
 
 
 class CustomRefreshJSONWebToken(RefreshJSONWebToken):
+    """
+        JWT 갱신 API
+
+        ---
+        ## `JWT 불필요`
+        ## Headers
+            - Content type : application/json
+        ## Body
+            - token : <JWT 토큰>
+    """
     serializer_class = CustomRefreshJSONWebTokenSerializer
