@@ -36,8 +36,13 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    SIGNUP_TYPES = (
+        ('normal', 'normal'),
+        ('google', 'google'),
+    )
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=50)
+    sign_up_type = models.CharField(max_length=10, choices=SIGNUP_TYPES, default='normal')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', ]
@@ -56,12 +61,12 @@ class User(AbstractUser):
 
 class UserSerializer(serializers.ModelSerializer):
     categories = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    password = serializers.CharField(min_length=6, write_only=True, required=True)
+    password = serializers.CharField(min_length=6, write_only=True)
     token = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'token', 'email', 'username', 'password', 'categories', 'date_joined']
+        fields = ['id', 'token', 'sign_up_type', 'email', 'username', 'password', 'categories', 'date_joined']
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
@@ -83,9 +88,9 @@ class UserSignInSerializer(serializers.Serializer):
         user = authenticate(username=attrs['email'], password=attrs['password'])
 
         if not user:
-            raise serializers.ValidationError('Incorrect email or password.')
+            raise serializers.ValidationError('이메일 혹은 패스워드가 올바르지 않습니다.')
 
         if not user.is_active:
-            raise serializers.ValidationError('User is disabled.')
+            raise serializers.ValidationError('해당 유저는 비활성 상태입니다.')
 
         return {'user': user}
