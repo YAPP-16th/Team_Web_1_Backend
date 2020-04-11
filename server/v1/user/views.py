@@ -168,6 +168,12 @@ class CustomObtainJSONWebToken(ObtainJSONWebToken):
     """
         JWT 발급 API
 
+        ## 주의사항
+            1) 발급 or 갱신 후 7일 안에는 (재)갱신 가능
+                - 7일 후에는 (재)갱신 불가능
+            2) 발급 or 갱신 후 28일 후에는 재갱신 불가능
+                - 7일 안에 계속 갱신이 이루어져도 28일 후에는 불가능
+            3) 만료 시 /user/token/ 으로 email, password 와 함께 재발급
         ---
         ## `JWT 불필요`
         ## Headers
