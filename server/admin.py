@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 
 from server.models.category import Category
-from server.models.token import BlackListedToken
 
 User = get_user_model()
 
@@ -13,4 +12,3 @@ class UserAdmin(admin.ModelAdmin):
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Category)
-admin.site.register(BlackListedToken)
