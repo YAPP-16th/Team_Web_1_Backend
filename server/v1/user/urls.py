@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import (UserDetail, SignUpView, SignInView, SignoutView, GoogleSignUpView, GoogleSignInView,
-                    CustomObtainJSONWebToken, CustomVerifyJSONWebToken, CustomRefreshJSONWebToken)
+                    CustomRefreshJSONWebToken, CustomVerifyJSONWebToken, CustomObtainJSONWebToken)
 
 app_name = 'user'
 urlpatterns = [
@@ -15,6 +15,6 @@ urlpatterns = [
     path('sign-out/', SignoutView.as_view(), name='sign_out'),
 
     path('token/', CustomObtainJSONWebToken.as_view(), name='obtain_json_web_token'),  # JWT 토큰 획득
-    path('token/refresh/', CustomRefreshJSONWebToken.as_view()),  # JWT 토큰 갱신
-    path('token/verify/', CustomVerifyJSONWebToken.as_view()),  # JWT 토큰 확인
+    path('token/refresh/', CustomRefreshJSONWebToken.as_view(), name='refresh_json_web_token'),  # JWT 토큰 갱신
+    path('token/verify/', CustomVerifyJSONWebToken.as_view(), name='verify_json_web_token'),  # JWT 토큰 확인
 ]
