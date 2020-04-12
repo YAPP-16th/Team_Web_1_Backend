@@ -1,20 +1,11 @@
-from rest_framework_jwt.serializers import (JSONWebTokenSerializer, VerifyJSONWebTokenSerializer,
-                                            RefreshJSONWebTokenSerializer)
+from rest_framework_simplejwt import serializers
 
 
-class CustomJSONWebTokenSerializer(JSONWebTokenSerializer):
+class CustomTokenVerifySerializer(serializers.TokenVerifySerializer):
+    def validate(self, attrs):
+        from rest_framework_simplejwt.tokens import UntypedToken
+        UntypedToken(attrs['token'])
 
-    def is_valid(self, raise_exception=True):
-        return super().is_valid(raise_exception=raise_exception)
-
-
-class CustomVerifyJSONWebTokenSerializer(VerifyJSONWebTokenSerializer):
-
-    def is_valid(self, raise_exception=True):
-        return super().is_valid(raise_exception=raise_exception)
-
-
-class CustomRefreshJSONWebTokenSerializer(RefreshJSONWebTokenSerializer):
-
-    def is_valid(self, raise_exception=True):
-        return super().is_valid(raise_exception=raise_exception)
+        return {'token': attrs['token'],
+                'message': '유효한 토큰입니다.',
+                'status_code': 200}
