@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
 
     'drf_yasg',
 ]
@@ -153,7 +154,7 @@ SWAGGER_SETTINGS = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  datetime.timedelta(days=3),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=30),
     'AUTH_HEADER_TYPES': ('JWT',),
 }
