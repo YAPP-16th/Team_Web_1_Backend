@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenVerifyView,
 from server.exceptions import ServerException
 from server.models.user import User, UserSerializer, UserSignInSerializer
 from server.permissions import IsObjectMe, GoogleAccessToken
+from server.v1.user.custom_serializer import CustomTokenVerifySerializer
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
@@ -204,7 +205,7 @@ class CustomVerifyJSONWebToken(TokenVerifyView):
         ## Body
             - token : <JWT Access Token or Refresh Token>
     """
-    pass
+    serializer_class = CustomTokenVerifySerializer
 
 
 class CustomRefreshJSONWebToken(TokenRefreshView):
