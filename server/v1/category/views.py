@@ -1,6 +1,8 @@
 from rest_framework import generics
+from rest_framework import permissions
 
 from server.models.category import Category, CategorySerializer
+from server.permissions import IsOwner
 
 
 class CategoryListCreateAPIView(generics.ListCreateAPIView):
@@ -28,4 +30,8 @@ class CategoryListCreateAPIView(generics.ListCreateAPIView):
 
 
 class CategoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
-    pass
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
+
+    #  삭제어쩌지?
