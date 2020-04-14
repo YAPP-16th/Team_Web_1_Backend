@@ -4,15 +4,18 @@ from rest_framework import serializers
 
 
 class CustomCategoryManager(models.Manager):
-    def get_my_last_order_number(self, request):
-        return max([category.order for category in self.filter(user=request.user)])
+    def get_my_last_order(self, request):
+        my_categories = self.filter(user=request.user)
+        if my_categories:
+            return max([category.order for category in my_categories])
+        return 0
 
     def move(self, obj, new_order):
         pass
 
 
 class Category(models.Model):
-    # TODO 메타정보 크롤러 있어야한다.
+    # TODO 메타정보 크롤러 있어야한다. url 앱에
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='categories', on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     is_favorited = models.BooleanField(default=False)
