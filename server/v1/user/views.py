@@ -15,7 +15,6 @@ from server.v1.user.custom_serializer import CustomTokenVerifySerializer
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    # TODO 현재 email도 수정할 수 있는데 serializer를 분리해서 email 필드는 수정불가하도록해야함.
     """
         ## `JWT 필요`
         ## Headers

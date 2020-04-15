@@ -72,6 +72,24 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+    def update(self, instance, validated_data):
+        email = validated_data.get('email', None)
+        password = validated_data.pop('password', None)
+
+        if email is not None and validated_data['email'] != instance.email:
+            from server.exceptions import ServerException
+            raise ServerException("이메일은 수정할 수 없습니다.")
+
+        for (key, value) in validated_data.items():
+            setattr(instance, key, value)
+
+        if password is not None:
+            instance.set_password(password)
+
+        instance.save()
+
+        return instance
+
     def get_token(self, instance):
         refresh = RefreshToken.for_user(instance)
         return {
