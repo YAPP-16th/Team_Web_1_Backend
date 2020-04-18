@@ -1,4 +1,5 @@
 from pprint import pprint
+from time import sleep
 
 from django.test import TestCase
 from rest_framework.test import APIClient
@@ -151,18 +152,23 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        token = response.json()['token']
 
+        access_token = response.json()['token']['access']
+        refresh_token = response.json()['token']['refresh']
+
+        params = {
+            "refresh": refresh_token
+        }
         response = self.client.post('/api/v1/user/sign-out/', params, format='json',
-                                    **{'HTTP_AUTHORIZATION': f'JWT {token}'})
+                                    **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
         pprint(response.json())
         self.assertEqual(response.status_code, 200)
 
     def test_fail_sign_out(self):
         '''
         로그아웃 실패 케이스
-        1) 로그아웃했는데 또 로그아웃(이미 블랙리스트된 토큰인데 재 로그아웃시도)
-        2) 만료된 토큰으로 로그아웃 (클라이언트가 토큰을 리프레시하고 재 요청하는것으로)
+        1) 로그아웃했는데 또 로그아웃(이미 블랙리스트된 리프레시 토큰인데 재 로그아웃시도)
+        2) 만료된 토큰으로 로그아웃 (로그아웃 실패, 클라이언트가 토큰을 리프레시하고 재 요청하는것으로)
         3) 잘못된 토큰으로 로그아웃
         '''
         params = {
@@ -171,33 +177,44 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        token = response.json()['token']
+
+        access_token = response.json()['token']['access']
+        refresh_token = response.json()['token']['refresh']
+
+        params = {
+            "refresh": refresh_token
+        }
 
         response = self.client.post('/api/v1/user/sign-out/', params, format='json',
-                                    **{'HTTP_AUTHORIZATION': f'JWT {token}'})
+                                    **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
 
         response = self.client.post('/api/v1/user/sign-out/', params, format='json',
-                                    **{'HTTP_AUTHORIZATION': f'JWT {token}'})
+                                    **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
         pprint(response.json())
-        self.assertEqual(response.status_code, 403)
-
+        self.assertEqual(response.status_code, 500)
+        # --------------------------------------------------------------------------------------------------------
         params = {
             "email": "test2@naver.com",
             "password": "123123",
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        token = response.json()['token']
 
-        response = self.client.post('/api/v1/user/sign-out/', params, format='json',
-                                    **{'HTTP_AUTHORIZATION': f'JWT {token}1'})
-        pprint(response.json())
-        self.assertEqual(response.status_code, 401)
+        access_token = response.json()['token']['access']
+        refresh_token = response.json()['token']['refresh']
 
-        from time import sleep
+        params = {
+            "refresh": refresh_token
+        }
+
         sleep(4)
         response = self.client.post('/api/v1/user/sign-out/', params, format='json',
-                                    **{'HTTP_AUTHORIZATION': f'JWT {token}'})
+                                    **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 401)
+        # --------------------------------------------------------------------------------------------------------
+        response = self.client.post('/api/v1/user/sign-out/', params, format='json',
+                                    **{'HTTP_AUTHORIZATION': f'JWT {access_token}1'})
         pprint(response.json())
         self.assertEqual(response.status_code, 401)
 
@@ -211,7 +228,7 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        token = response.json()['token']
+        token = response.json()['token']['access']
 
         response = self.client.get('/api/v1/user/1/', **{'HTTP_AUTHORIZATION': f'JWT {token}'})
         print(response.json())
@@ -232,7 +249,7 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        token = response.json()['token']
+        token = response.json()['token']['access']
         params = {
             "email": "tes1t@naver.com",
             "password": "123123",
@@ -262,7 +279,7 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        token = response.json()['token']
+        token = response.json()['token']['access']
 
         response = self.client.delete('/api/v1/user/1/', **{'HTTP_AUTHORIZATION': f'JWT {token}'})
         pprint(response)
@@ -281,7 +298,7 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        token = response.json()['token']
+        token = response.json()['token']['access']
 
         params['email'] = "hi@navr.com"
         response = self.client.patch('/api/v1/user/1/', params, format='json', **{'HTTP_AUTHORIZATION': f'JWT {token}'})
@@ -406,7 +423,7 @@ class UserTest(TestCase):
 
     def test_obtain_jwt(self):
         '''
-        회원가입할떄 얻은 유저의 jwt과 obtain_jwt이 같은 jwt을 반환하는지 test
+        토큰 얻는 테스트
         '''
         params = {
             "email": "test@naver.com",
@@ -415,11 +432,10 @@ class UserTest(TestCase):
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
         pprint(response.json())
-        jwt_token = response.json()['token']
+        jwt_token = response.json()['token']['access']
 
         response = self.client.post('/api/v1/user/token/', params, format='json')
         pprint(response.json())
-        self.assertEqual(jwt_token, response.json()['token'])
 
     def test_verify_jwt(self):
         params = {
@@ -428,13 +444,13 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        jwt_token = response.json()['token']
+        jwt_token = response.json()['token']['access']
         token = {
             'token': jwt_token
         }
         response = self.client.post('/api/v1/user/token/verify/', token, format='json')
         print(response.json())
-        self.assertEqual(jwt_token, response.json()['token'])
+        self.assertEqual(token['token'], response.json()['token'])
 
     def test_refresh_jwt(self):
         params = {
@@ -443,10 +459,133 @@ class UserTest(TestCase):
             "username": "123123"
         }
         response = self.client.post('/api/v1/user/sign-up/', params, format='json')
-        jwt_token = response.json()['token']
+        access_token = response.json()['token']['access']
+        refresh_token = response.json()['token']['refresh']
         token = {
-            'token': jwt_token
+            'refresh': refresh_token
         }
         response = self.client.post('/api/v1/user/token/refresh/', token, format='json')
         pprint(response.json())
-        self.assertEqual(token['token'], response.json()['token'])
+        self.assertEqual(response.status_code, 200)
+
+    def test_fail_refresh_jwt(self):
+        '''
+        Refresh 토큰 실패 케이스
+        1) 이미 블랙 리스트된 리프레시 토큰임
+        2) 만료된 리프레시 토큰임
+        '''
+        params = {
+            "email": "test@naver.com",
+            "password": "123123",
+            "username": "123123"
+        }
+        response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+        access_token = response.json()['token']['access']
+        refresh_token = response.json()['token']['refresh']
+
+        params = {
+            "refresh": refresh_token
+        }
+        response = self.client.post('/api/v1/user/sign-out/', params, format='json',
+                                    **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
+        pprint(response.json())
+        token = {
+            'refresh': refresh_token
+        }
+        response = self.client.post('/api/v1/user/token/refresh/', token, format='json')
+        pprint(response.json())
+        self.assertEqual(response.status_code, 401)
+
+        # ------------------------------------------------------------------------------------------------------
+        sleep(2)
+        token = {
+            'refresh': refresh_token
+        }
+        response = self.client.post('/api/v1/user/token/refresh/', token, format='json')
+        pprint(response.json())
+        self.assertEqual(response.status_code, 401)
+
+    def test_success_update_user(self):
+        params = {
+            "email": "test@naver.com",
+            "password": "123123",
+            "username": "123123"
+        }
+        response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+        access_token = response.json()['token']['access']
+        user_id = response.json()['id']
+
+        # patch
+        params = {
+            "password": "123123",
+            "username": "hongjae"
+        }
+        response = self.client.patch(f'/api/v1/user/{user_id}/', params, format='json',
+                                     **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 200)
+
+        # put
+        params = {
+            "email": "test@naver.com",
+            "password": "1231234",
+            "username": "hongjae2"
+        }
+        response = self.client.put(f'/api/v1/user/{user_id}/', params, format='json',
+                                   **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 200)
+
+        # login
+        params = {
+            "email": "test@naver.com",
+            "password": "1231234",
+        }
+        response = self.client.post(f'/api/v1/user/sign-in/', params, format='json')
+        pprint(response.json())
+        self.assertEqual(response.status_code, 200)
+
+    def test_fail_update_user(self):
+        '''
+        1. email을 수정하려는 경우
+        2. put일때 모든 필드를 입력하지 않은 경우
+        '''
+        params = {
+            "email": "test@naver.com",
+            "password": "123123",
+            "username": "123123"
+        }
+        response = self.client.post('/api/v1/user/sign-up/', params, format='json')
+        access_token = response.json()['token']['access']
+        user_id = response.json()['id']
+
+        # patch email 수정
+        params = {
+            "email": "test1@naver.com",
+            "password": "123123",
+        }
+        response = self.client.patch(f'/api/v1/user/{user_id}/', params, format='json',
+                                     **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 500)
+
+        # put email 수정
+        params = {
+            "email": "test2@naver.com",
+            "password": "1231234",
+            "username": "hongjae2"
+        }
+        response = self.client.put(f'/api/v1/user/{user_id}/', params, format='json',
+                                   **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 500)
+
+        # put 필드 누락
+        params = {
+            "email": "test@naver.com",
+            "password": "1231234"
+        }
+        response = self.client.put(f'/api/v1/user/{user_id}/', params, format='json',
+                                   **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 400)

@@ -5,17 +5,16 @@ from django.contrib.auth import login, logout
 from rest_framework import generics, status, views
 from rest_framework import permissions
 from rest_framework.response import Response
-from rest_framework_jwt.views import ObtainJSONWebToken, VerifyJSONWebToken, RefreshJSONWebToken
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenVerifyView, TokenRefreshView
 
-from server.models.token import BlackListedToken
+from server.exceptions import ServerException
 from server.models.user import User, UserSerializer, UserSignInSerializer
-from server.permissions import IsObjectMe, IsNotBlacklistedToken, GoogleAccessToken
-from server.v1.user.custom_serializer import (CustomJSONWebTokenSerializer, CustomVerifyJSONWebTokenSerializer,
-                                              CustomRefreshJSONWebTokenSerializer)
+from server.permissions import IsObjectMe, GoogleAccessToken
+from server.v1.user.custom_serializer import CustomTokenVerifySerializer
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    # TODO 현재 email도 수정할 수 있는데 serializer를 분리해서 email 필드는 수정불가하도록해야함.
     """
         ## `JWT 필요`
         ## Headers
@@ -80,18 +79,24 @@ class SignoutView(views.APIView):
     """
         일반 로그아웃 API
 
+        - 해당 Refresh 토큰 무효화
         ---
         ## `JWT 필요`
         ## Headers
             - Authorization : JWT <토큰>
+        ## Body
+            - refresh : Refresh 토큰
     """
-    permission_classes = [permissions.IsAuthenticated, IsNotBlacklistedToken]
 
     def post(self, request):
+        refresh_token = request.data.get('refresh')
+        try:
+            token = RefreshToken(refresh_token)
+        except Exception:
+            raise ServerException('유효하지않은 Refresh 토큰입니다.')
+        token.blacklist()
         logout(self.request)
-        token = request.META.get('HTTP_AUTHORIZATION')
-        BlackListedToken.objects.create(token=token)
-        return Response({'logout': True})
+        return Response({'logout': True, 'message': '해당 Refresh 토큰은 이제 사용할 수 없습니다.'})
 
 
 class GoogleSignUpView(generics.CreateAPIView):
@@ -164,10 +169,19 @@ class GoogleSignInView(views.APIView):
             return Response(content, status=status.HTTP_404_NOT_FOUND)
 
 
-class CustomObtainJSONWebToken(ObtainJSONWebToken):
+class CustomObtainJSONWebToken(TokenObtainPairView):
     """
         JWT 발급 API
 
+        ## 주의사항
+            1) Access Token 유효기간 2시간
+            2) Refresh Token 유효기간 30일
+            3) Access Token 만료 시
+                - url : /user/token/refresh/
+                - body : {refresh: Refresh 토큰} 으로 Access Token 재발급
+            4) Refresh Token 만료 시
+                - /user/sign-in/ 으로 재 로그인
+                - 혹은 /user/token/ 으로 email, password 와 함께 재발급
         ---
         ## `JWT 불필요`
         ## Headers
@@ -176,10 +190,10 @@ class CustomObtainJSONWebToken(ObtainJSONWebToken):
             - email : 이메일
             - password : 패스워드(6자리 이상)
     """
-    serializer_class = CustomJSONWebTokenSerializer
+    pass
 
 
-class CustomVerifyJSONWebToken(VerifyJSONWebToken):
+class CustomVerifyJSONWebToken(TokenVerifyView):
     """
         JWT 검증 API
 
@@ -188,12 +202,12 @@ class CustomVerifyJSONWebToken(VerifyJSONWebToken):
         ## Headers
             - Content type : application/json
         ## Body
-            - token : <JWT 토큰>
+            - token : <JWT Access Token or Refresh Token>
     """
-    serializer_class = CustomVerifyJSONWebTokenSerializer
+    serializer_class = CustomTokenVerifySerializer
 
 
-class CustomRefreshJSONWebToken(RefreshJSONWebToken):
+class CustomRefreshJSONWebToken(TokenRefreshView):
     """
         JWT 갱신 API
 
@@ -202,6 +216,6 @@ class CustomRefreshJSONWebToken(RefreshJSONWebToken):
         ## Headers
             - Content type : application/json
         ## Body
-            - token : <JWT 토큰>
+            - refresh : <JWT Refresh Token>
     """
-    serializer_class = CustomRefreshJSONWebTokenSerializer
+    pass

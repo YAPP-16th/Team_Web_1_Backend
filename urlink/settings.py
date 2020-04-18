@@ -25,7 +25,7 @@ SECRET_KEY = '$@m!+cqav*c!i2&x8+ys)d)#mv^zdh_z=*=7r9*f@6vg@f8b1g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'rest_framework',
-    'rest_framework.authtoken',
+    'rest_framework_simplejwt.token_blacklist',
 
     'drf_yasg',
 ]
@@ -53,17 +53,11 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ],
     'EXCEPTION_HANDLER': 'server.exceptions.server_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'error_text'
-}
-
-JWT_AUTH = {
-    'JWT_ALLOW_REFRESH': True,
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=28),
 }
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -157,4 +151,10 @@ SWAGGER_SETTINGS = {
             'in': 'header'
         }
     }
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(hours=2),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=30),
+    'AUTH_HEADER_TYPES': ('JWT',),
 }
