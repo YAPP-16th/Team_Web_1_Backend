@@ -1,5 +1,7 @@
-from rest_framework import generics
+from django.db.models import F
+from rest_framework import generics, status
 from rest_framework import permissions
+from rest_framework.response import Response
 
 from server.models.category import Category, CategorySerializer
 from server.permissions import IsOwner
@@ -34,4 +36,20 @@ class CategoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
 
-    #  삭제어쩌지?
+    def perform_destroy(self, instance):
+        # 삭제할 시 order는 그 오더 밑에애들을 1씩 마이너스해준다.
+        instance_order = instance.order
+        Category.objects.filter(user=self.request.user, order__gt=instance_order).update(order=F('order') - 1)
+        instance.delete()
+
+    def update(self, request, *args, **kwargs):
+        is_order_change = request.data.get('is_order_change')
+        if is_order_change:
+            new_order = request.data.get('new_order')
+            obj = self.get_object()
+            Category.objects.move(request, obj, new_order)
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            super().update(request, *args, **kwargs)
+
+    # TODO 1) db 실행계획, 인덱스 확인하기
