@@ -19,8 +19,8 @@ class CustomCategoryManager(models.Manager):
                     user=request.user,
                     order__lt=obj.order,
                     order__gte=new_order
-                ).exclude(
-                    pk=obj.pk
+                # ).exclude(
+                #     pk=obj.pk
                 ).update(
                     order=F('order') + 1
                 )
@@ -29,8 +29,8 @@ class CustomCategoryManager(models.Manager):
                     user=request.user,
                     order__lte=new_order,
                     order__gt=obj.order
-                ).exclude(
-                    pk=obj.pk
+                # ).exclude(
+                #     pk=obj.pk
                 ).update(
                     order=F('order') - 1
                 )
