@@ -3,21 +3,28 @@ from django.db import models, transaction
 from django.db.models import F
 from rest_framework import serializers
 
+from server.exceptions import ServerException
+
 
 class CustomCategoryManager(models.Manager):
-    def get_my_last_order(self, request):
-        my_categories = self.filter(user=request.user)
+    def get_my_last_order(self, user):
+        my_categories = self.filter(user=user)
         if my_categories:
             return my_categories.order_by('order').last().order
         return 0
 
-    def move(self, request, obj, new_order):
+    def move(self, instance, new_order):
         queryset = self.get_queryset()
+        user = instance.user
+
+        if self.get_my_last_order(user) < new_order:
+            raise ServerException("잘못된 order 입니다.")
+
         with transaction.atomic():
-            if obj.order > int(new_order):
+            if instance.order > new_order:
                 queryset.filter(
-                    user=request.user,
-                    order__lt=obj.order,
+                    user=user,
+                    order__lt=instance.order,
                     order__gte=new_order
                     # ).exclude(
                     #     pk=obj.pk
@@ -26,17 +33,17 @@ class CustomCategoryManager(models.Manager):
                 )
             else:
                 queryset.filter(
-                    user=request.user,
+                    user=user,
                     order__lte=new_order,
-                    order__gt=obj.order
+                    order__gt=instance.order
                     # ).exclude(
                     #     pk=obj.pk
                 ).update(
                     order=F('order') - 1
                 )
-            obj.order = new_order
-            obj.save()
-        return obj
+            instance.order = new_order
+            instance.save()
+        return instance
 
 
 class Category(models.Model):
@@ -61,3 +68,9 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
+
+    def update(self, instance, validated_data):
+        order = validated_data.pop('order', None)
+        if order and instance.order != order:
+            Category.objects.move(instance, order)
+        return super().update(instance, validated_data)
