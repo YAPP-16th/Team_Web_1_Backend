@@ -138,7 +138,7 @@ class CategoryTest(TestCase):
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         pprint(response.json())
-        response = self.client.delete(f'/api/v1/category/5/',
+        response = self.client.delete(f'/api/v1/category/2/',
                                       **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         self.assertEqual(response.status_code, 204)
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
@@ -277,14 +277,25 @@ class CategoryTest(TestCase):
         pprint(response.json())
 
         params = {
-            "name": "test48",
-            "order": 3
+            "name": "느으으아아아앙",
+            "order": 1
         }
         response = self.client.put(f'/api/v1/category/49/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         pprint(response.json())
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['order'], 3)
+        self.assertEqual(response.json()['order'], 1)
+
+        response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+        pprint(response.json())
+
+        params = {
+            "is_favorited": "true"
+        }
+        response = self.client.patch(f'/api/v1/category/48/', params, format='json',
+                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 200)
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         pprint(response.json())
@@ -292,10 +303,43 @@ class CategoryTest(TestCase):
     def test_fail_category_order_change(self):
         '''
         카테고리 순서 변경 실패 케이스
-        1) 업데이트를 원하는 번호가 0보다 작다.
+        1) 업데이트를 원하는 번호가 1보다 작다.
         2) 업데이트를 원하는 번호가 현재 최대 번호보다 크다.
         3) 필드 누락
         '''
+        for i in range(1, 11):
+            params = {
+                "name": f"test{i}"
+            }
+            self.client.post('/api/v1/category/', params, format='json',
+                             **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+
+        # 업데이트를 원하는 번호가 1보다 작다.
+        params = {
+            "order": 0
+        }
+        response = self.client.patch(f'/api/v1/category/3/', params, format='json',
+                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 500)
+
+        # 업데이트를 원하는 번호가 현재 최대 번호보다 크다.
+        params = {
+            "order": 11
+        }
+        response = self.client.patch(f'/api/v1/category/3/', params, format='json',
+                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 500)
+
+        # 필드 누락
+        params = {
+            "order": 11
+        }
+        response = self.client.put(f'/api/v1/category/3/', params, format='json',
+                                   **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 400)
 
     def test_category_list_order_by(self):
         for i in range(50):
@@ -310,7 +354,8 @@ class CategoryTest(TestCase):
         response = self.client.patch(f'/api/v1/category/50/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         params = {
-            "is_favorited": "true"
+            "is_favorited": "true",
+            "order": 2
         }
         response = self.client.patch(f'/api/v1/category/49/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
