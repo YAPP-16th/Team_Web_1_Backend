@@ -17,7 +17,7 @@ class CustomCategoryManager(models.Manager):
         queryset = self.get_queryset()
         user = instance.user
 
-        if self.get_my_last_order(user) < new_order:
+        if new_order < 1 or self.get_my_last_order(user) < new_order:
             raise ServerException("잘못된 order 입니다.")
 
         with transaction.atomic():
@@ -71,6 +71,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         order = validated_data.pop('order', None)
-        if order and instance.order != order:
+        if isinstance(order, int) and instance.order != order:
             Category.objects.move(instance, order)
         return super().update(instance, validated_data)
