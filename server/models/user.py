@@ -60,13 +60,13 @@ class User(AbstractUser):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    categories = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    # categories = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     password = serializers.CharField(min_length=6, write_only=True)
     token = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'token', 'sign_up_type', 'email', 'username', 'password', 'categories', 'date_joined']
+        fields = ['id', 'token', 'sign_up_type', 'email', 'username', 'password', 'date_joined']
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
