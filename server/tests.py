@@ -1,3 +1,1 @@
-from django.test import TestCase
-
-# Create your tests here.
+from server.v1.test import *
