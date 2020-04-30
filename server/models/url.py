@@ -15,6 +15,12 @@ class Url(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='urls', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, related_name='urls', on_delete=models.CASCADE)
 
+    def __str__(self):
+        return '{}'.format(self.title)
+
+    class Meta:
+        ordering = ["-created_at"]
+
 
 class UrlSerializer(serializers.ModelSerializer):
     class Meta:

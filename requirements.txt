@@ -4,3 +4,4 @@ djangorestframework-simplejwt==4.4.0
 django-cors-headers==3.2.1
 drf-yasg==1.17.1
 beautifulsoup4==4.9.0
+requests==2.23.0

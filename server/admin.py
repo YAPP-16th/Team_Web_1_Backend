@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 
 from server.models.category import Category
 from server.models.url import Url
+
 User = get_user_model()
 
 
