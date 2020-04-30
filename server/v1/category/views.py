@@ -11,6 +11,11 @@ class CategoryListCreateAPIView(generics.ListCreateAPIView):
         카테고리 리스트 or 등록 API
 
         ---
+        ## Headers
+            - Content type : application/json
+            - Authorization : JWT <토큰>
+        ## Body
+            - name : 카테고리 이름
 
     """
     serializer_class = CategorySerializer
@@ -31,6 +36,21 @@ class CategoryListCreateAPIView(generics.ListCreateAPIView):
 
 
 class CategoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    """
+        카테고리 조회 & 수정 & 삭제 API
+
+        ---
+        ## Headers
+            - Content type : application/json
+            - Authorization : JWT <토큰>
+        ## Path Params
+            - id : 카테고리 id
+        ## Body
+            - name : 카테고리 이름
+            - order : 순서
+            - is_favorited : 즐겨찾기
+
+    """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]

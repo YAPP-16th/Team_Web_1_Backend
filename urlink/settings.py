@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import datetime
+import logging
 import os
+
+import sqlparse
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -126,8 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
 LANGUAGE_CODE = 'ko-kr'
-
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -139,6 +141,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -157,4 +160,51 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(hours=2),
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=30),
     'AUTH_HEADER_TYPES': ('JWT',),
+}
+
+
+class CustomFormatter(logging.Formatter):
+    def format(self, record):
+        sql = record.getMessage()
+        formatted_sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
+
+        try:
+            import pygments
+            from pygments.lexers import SqlLexer
+            from pygments.formatters import TerminalTrueColorFormatter
+
+            formatted_sql = pygments.highlight(
+                formatted_sql,
+                SqlLexer(),
+                TerminalTrueColorFormatter(style='monokai')
+            )
+        except ImportError:
+            pass
+
+        return formatted_sql
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            '()': 'urlink.settings.CustomFormatter',
+            'format': '{sql}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # change debug level as appropiate
+        },
+    },
 }
