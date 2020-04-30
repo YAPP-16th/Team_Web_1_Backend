@@ -7,6 +7,7 @@ from rest_framework import serializers
 
 
 class Url(models.Model):
+
     url = models.CharField(max_length=300)
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=100)
