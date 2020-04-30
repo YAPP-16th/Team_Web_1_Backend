@@ -20,3 +20,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('server.urls', namespace='server')),
 ]
+
