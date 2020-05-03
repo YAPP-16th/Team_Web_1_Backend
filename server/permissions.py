@@ -1,4 +1,7 @@
+from random import randint
+
 import requests
+from django.conf import settings
 from rest_framework import permissions
 
 
@@ -33,11 +36,25 @@ class GoogleAccessToken:
         self.token = token
 
     def is_valid(self):
-        # https://developers.google.com/identity/sign-in/web/backend-auth
-        payload = {'id_token': self.token}  # validate the token
-        response = requests.get('https://oauth2.googleapis.com/tokeninfo', params=payload)
+        # https://developers.google.com/people/api/rest/v1/people/get
+        # https://developer.chrome.com/apps/identity
+        people_api_url = 'https://people.googleapis.com/v1/people/me'
+        headers = {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Authorization': f'Bearer {self.token}',
+        }
+        payload = {
+            'personFields': 'names,emailAddresses',
+            'key': settings.GOOGLE_API_KEY
+        }
+        response = requests.get(people_api_url, params=payload, headers=headers)
         response = response.json()
 
-        if 'error' in response or 'email' not in response:
+        if 'error' in response or 'emailAddresses' not in response or \
+                not response['emailAddresses'][0] or response['emailAddresses'][0].get('value') is None:
             return False
-        return response
+
+        return {
+            'email': response['emailAddresses'][0]['value'],
+            'username': response['names'][0].get('displayName', f'User{randint(1000, 99999)}')
+        }
