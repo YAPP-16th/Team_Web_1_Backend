@@ -93,7 +93,7 @@ class SignoutView(views.APIView):
         try:
             token = RefreshToken(refresh_token)
         except Exception:
-            raise ServerException('유효하지않은 Refresh 토큰입니다.')
+            raise ServerException('유효하지 않은 Refresh 토큰입니다.')
         token.blacklist()
         logout(self.request)
         return Response({'logout': True, 'message': '해당 Refresh 토큰은 이제 사용할 수 없습니다.'})
@@ -122,12 +122,11 @@ class GoogleSignUpView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         response = GoogleAccessToken(request.data.get("token")).is_valid()
         if not response:
-            content = {'message': 'wrong google token / this google token is already expired.'}
+            content = {'message': '유효하지 않은 토큰 혹은 email 정보를 가져올 수 없습니다.'}
             return Response(content, status=status.HTTP_401_UNAUTHORIZED)
 
-        user_email = response['email']
-        request.data['username'] = response.get('name', user_email.split('@')[0])
-        request.data['email'] = user_email
+        request.data['username'] = response['username']
+        request.data['email'] = response['email']
         request.data['password'] = self.make_random_string_for_password()
         request.data['sign_up_type'] = 'google'
         request.data.pop('token', None)
