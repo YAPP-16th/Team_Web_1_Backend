@@ -46,8 +46,10 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    'django_filters',
 
     'drf_yasg',
+    'debug_toolbar',
 ]
 
 AUTH_USER_MODEL = 'server.User'
@@ -59,6 +61,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'EXCEPTION_HANDLER': 'server.exceptions.server_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'error_text'
@@ -76,8 +79,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
-
+INTERNAL_IPS = ('127.0.0.1')
 ROOT_URLCONF = 'urlink.urls'
 
 TEMPLATES = [
