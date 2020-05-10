@@ -211,7 +211,7 @@ class UserTest(TestCase):
         response = self.client.post('/api/v1/user/sign-out/', params, format='json',
                                     **{'HTTP_AUTHORIZATION': f'JWT {access_token}'})
         pprint(response.json())
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 200)
         # --------------------------------------------------------------------------------------------------------
         response = self.client.post('/api/v1/user/sign-out/', params, format='json',
                                     **{'HTTP_AUTHORIZATION': f'JWT {access_token}1'})
@@ -343,83 +343,83 @@ class UserTest(TestCase):
         pprint(response.json())
         self.assertEqual(response.status_code, 400)
 
-    def test_success_google_sign_up(self):
-        '''
-        google 회원가입 성공 케이스
-        '''
-        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
-
-        params = {
-            "token": token,
-        }
-        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
-        pprint(response.json())
-
-    def test_fail_google_sign_up(self):
-        '''
-        google 회원가입 실패 케이스
-        1) 토큰이 유효하지 않음.
-        2) 이미 가입된 유저
-        '''
-        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
-
-        params = {
-            "token": token + '1',
-        }
-        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
-        pprint(response.json())
-
-        self.assertEqual(response.status_code, 401)
-
-        params = {
-            "token": token,
-        }
-        self.client.post('/api/v1/user/google/sign-up/', params, format='json')
-        params = {
-            "token": token,
-        }
-        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
-        pprint(response.json())
-
-        self.assertEqual(response.status_code, 400)
-
-    def test_success_google_sign_in(self):
-        '''
-        google 로그인 성공 케이스
-        '''
-        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
-
-        params = {
-            "token": token
-        }
-        response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
-        response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
-        pprint(response.json())
-
-        self.assertEqual(response.status_code, 200)
-
-    def test_fail_google_sign_in(self):
-        '''
-        google 로그인 실패 케이스
-        1) 토큰이 유효하지않음
-        2) 유저가 없음
-        '''
-        token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
-
-        params = {
-            "token": token
-        }
-        # response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
-        # params = {
-        #     "token": token+'1'
-        # }
-        # response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
-        # pprint(response.json())
-        # self.assertEqual(response.status_code, 401)
-
-        response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
-        pprint(response.json())
-        self.assertEqual(response.status_code, 404)
+    # def test_success_google_sign_up(self):
+    #     '''
+    #     google 회원가입 성공 케이스
+    #     '''
+    #     token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
+    #
+    #     params = {
+    #         "token": token,
+    #     }
+    #     response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+    #     pprint(response.json())
+    #
+    # def test_fail_google_sign_up(self):
+    #     '''
+    #     google 회원가입 실패 케이스
+    #     1) 토큰이 유효하지 않음.
+    #     2) 이미 가입된 유저
+    #     '''
+    #     token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
+    #
+    #     params = {
+    #         "token": token + '1',
+    #     }
+    #     response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+    #     pprint(response.json())
+    #
+    #     self.assertEqual(response.status_code, 401)
+    #
+    #     params = {
+    #         "token": token,
+    #     }
+    #     self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+    #     params = {
+    #         "token": token,
+    #     }
+    #     response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+    #     pprint(response.json())
+    #
+    #     self.assertEqual(response.status_code, 400)
+    #
+    # def test_success_google_sign_in(self):
+    #     '''
+    #     google 로그인 성공 케이스
+    #     '''
+    #     token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
+    #
+    #     params = {
+    #         "token": token
+    #     }
+    #     response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+    #     response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
+    #     pprint(response.json())
+    #
+    #     self.assertEqual(response.status_code, 200)
+    #
+    # def test_fail_google_sign_in(self):
+    #     '''
+    #     google 로그인 실패 케이스
+    #     1) 토큰이 유효하지않음
+    #     2) 유저가 없음
+    #     '''
+    #     token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjI1N2Y2YTU4MjhkMWU0YTNhNmEwM2ZjZDFhMjQ2MWRiOTU5M2U2MjQiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDAyMDg4ODQ3NDMxLWo1azRsNXRhbGpoZjhycGVuYWpybHFnMWgxMTg3ZHI1LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAwMjA4ODg0NzQzMS0zZWo5M3F1Mm9sYms1bWJoaG1pamwyYjlpNWY5Nmw4ay5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMzEyNTAzMTY1OTQ4OTI5Mjg4NSIsImVtYWlsIjoiamp1bjk0QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoianVueWVvbmcgY2hvaSIsInBpY3R1cmUiOiJodHRwczovL2xoNi5nb29nbGV1c2VyY29udGVudC5jb20vLUtucTRFVVNuWTVVL0FBQUFBQUFBQUFJL0FBQUFBQUFBQUFBL0FBS1dKSk9INzV1TEFVWVhnMkRGWWFoT2thZFBKVGpVUGcvczk2LWMvcGhvdG8uanBnIiwiZ2l2ZW5fbmFtZSI6Imp1bnllb25nIiwiZmFtaWx5X25hbWUiOiJjaG9pIiwibG9jYWxlIjoia28iLCJpYXQiOjE1ODU4MTM1NTksImV4cCI6MTU4NTgxNzE1OX0.f4OnZu0EoUrX24qG4PuahP2Eyaz3H957tA586BLv_gD5xXlERdqQLLbJyD3-gH0Dd24r-RErsU9zxKOa86YXHsAHLdtmlLZ4LJrOyp1EiEQFTdUqvYdFEbtxCFWRz0F2Grcntun2Pj9md_odddemTgzEaE1OWKxnJRqe_3eD9P6EjY380wvwveP8wZZqLW6LKg9fR8sPVwqZ_sYhlGvVWpqworLLibTrG55D_-KsN_DfLzSuPLXAQuWAjCBfvzTc9p-EICiroMgAvBVDeRsH98uM0c9iT42gqXGNBM2bhcfUMAuWOKDwRFU3k0GYYlKiYwJnofdY2nyKMFAunwe6XQ'
+    #
+    #     params = {
+    #         "token": token
+    #     }
+    #     # response = self.client.post('/api/v1/user/google/sign-up/', params, format='json')
+    #     # params = {
+    #     #     "token": token+'1'
+    #     # }
+    #     # response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
+    #     # pprint(response.json())
+    #     # self.assertEqual(response.status_code, 401)
+    #
+    #     response = self.client.post('/api/v1/user/google/sign-in/', params, format='json')
+    #     pprint(response.json())
+    #     self.assertEqual(response.status_code, 404)
 
     def test_obtain_jwt(self):
         '''
