@@ -24,6 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '$@m!+cqav*c!i2&x8+ys)d)#mv^zdh_z=*=7r9*f@6vg@f8b1g'
+GOOGLE_API_KEY = 'AIzaSyD9VzCBawbBZR6LNJdbFWVJF_HYdiGQc_Y'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -45,8 +46,10 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    'django_filters',
 
     'drf_yasg',
+    'debug_toolbar',
 ]
 
 AUTH_USER_MODEL = 'server.User'
@@ -58,6 +61,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'EXCEPTION_HANDLER': 'server.exceptions.server_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'error_text'
@@ -75,8 +79,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware'
 ]
-
+INTERNAL_IPS = ('127.0.0.1')
 ROOT_URLCONF = 'urlink.urls'
 
 TEMPLATES = [

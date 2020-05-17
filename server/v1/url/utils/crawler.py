@@ -5,10 +5,9 @@ from server.exceptions import ServerException
 
 
 class Crawler:
-    def __init__(self, path):
-        self.path = path
+    IMAGE_404 = 'https://www.boostability.com/wp-content/uploads/2012/10/BOOST_BLOG_IMAGE_RB_SET_10_404_PAGE_1200x628px_v1_3.jpg'
 
-    def get_html(self):
+    def get_html(self, path):
         headers = {
             'Connection': 'keep-alive',
             'Pragma': 'no-cache',
@@ -18,7 +17,7 @@ class Crawler:
             'Sec-Fetch-Dest': 'document'
         }
 
-        response = requests.get(self.path, headers=headers)
+        response = requests.get(path, headers=headers)
         if not response.ok:
             raise ServerException(response.reason)
 
@@ -41,10 +40,9 @@ class Crawler:
         image_path = self.get_meta_data(head, [{'property': 'og:image'}, {'property': 'twitter:image'}])
 
         if image_path == '알수없음':
-            image_path = 'https://www.boostability.com/wp-content/uploads/2012/10/BOOST_BLOG_IMAGE_RB_SET_10_404_PAGE_1200x628px_v1_3.jpg'
+            image_path = self.IMAGE_404
 
         return {
-            'path': self.path,
             'title': title,
             'description': description,
             'image_path': image_path
@@ -54,12 +52,12 @@ class Crawler:
 if __name__ == "__main__":
     from pprint import pprint
 
-    for url in ['https://programmers.co.kr/learn/challenges?tab=all_challenges', 'https://www.acmicpc.net/',
+    c = Crawler()
+    for path in ['https://programmers.co.kr/learn/challenges?tab=all_challenges', 'https://www.acmicpc.net/',
                 'https://ssungkang.tistory.com/category/%EC%9B%B9%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/Django',
                 'https://tech.cloud.nongshim.co.kr/techblog/', 'https://mail.google.com/mail/u/0/#inbox',
                 'https://syundev.tistory.com/29?category=868616', 'https://github.com/hotire/turnover-story',
                 'http://www.bloter.net/archives/257437',
                 'https://www.youtube.com/watch?v=r6TFnNQsQLY&feature=youtu.be']:
-        c = Crawler(url)
-        html = c.get_html()
+        html = c.get_html(path)
         pprint(c.parse_html(html))
