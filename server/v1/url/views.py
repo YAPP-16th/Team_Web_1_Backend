@@ -1,13 +1,11 @@
 from rest_framework import generics, status
 from rest_framework import permissions
 from rest_framework.response import Response
-
 from server.exceptions import ServerException
 from server.models.category import Category
 from server.models.url import Url, UrlSerializer
 from server.permissions import IsOwner
 from server.v1.url.utils.crawler import Crawler
-
 
 class UrlListCreateAPIView(generics.ListCreateAPIView):
     # TODO 검색 필터링 해야한다.
