@@ -65,6 +65,8 @@ class Category(models.Model):
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    url_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Category
         fields = '__all__'
@@ -74,3 +76,6 @@ class CategorySerializer(serializers.ModelSerializer):
         if isinstance(order, int) and instance.order != order:
             Category.objects.move(instance, order)
         return super().update(instance, validated_data)
+
+    def get_url_count(self, category):
+        return category.urls.count
