@@ -47,9 +47,11 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
+    'channels',
 
     'drf_yasg',
     'debug_toolbar',
+    'django_apscheduler',
 ]
 
 AUTH_USER_MODEL = 'server.User'
@@ -213,3 +215,16 @@ LOGGING = {
         },
     },
 }
+
+ASGI_APPLICATION = "urlink.routing.application"
+
+SCHEDULER_CONFIG = {
+    "apscheduler.jobstores.default": {
+        "class": "django_apscheduler.jobstores:DjangoJobStore"
+    },
+    'apscheduler.executors.processpool': {
+        "type": "threadpool"
+    },
+    'apscheduler.timezone': 'Asia/Seoul'
+}
+SCHEDULER_AUTOSTART = True
