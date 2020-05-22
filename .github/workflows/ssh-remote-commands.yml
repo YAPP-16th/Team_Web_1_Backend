@@ -12,13 +12,16 @@ jobs:
     name: continuous deploy
     runs-on: ubuntu-latest
     steps:
-    - name: executing remote ssh commands using password
+    - name: executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
+        script_stop: true
         script: |
           pwd
-          ll
+          cd projects/Team_Web_1_Backend/
+          source venv/bin/activate
+          sh deploy.sh
