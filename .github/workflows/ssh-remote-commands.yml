@@ -21,4 +21,5 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           pwd
-          ll
+          cd projects/Team_Web_1_Backend/
+          sh deploy.sh
