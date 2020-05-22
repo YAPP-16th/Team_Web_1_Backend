@@ -23,4 +23,4 @@ jobs:
         script: |
           pwd
           cd projects/Team_Web_1_Backend/
-          sh deploy.sh
+          source venv/bin/activate
