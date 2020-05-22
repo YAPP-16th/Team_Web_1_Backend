@@ -24,3 +24,4 @@ jobs:
           pwd
           cd projects/Team_Web_1_Backend/
           source venv/bin/activate
+          pip list
