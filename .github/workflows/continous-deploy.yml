@@ -21,7 +21,6 @@ jobs:
         port: ${{ secrets.PORT }}
         script_stop: true
         script: |
-          pwd
           cd projects/Team_Web_1_Backend/
           source venv/bin/activate
           sh deploy.sh
