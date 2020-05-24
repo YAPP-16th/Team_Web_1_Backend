@@ -5,12 +5,12 @@ from django.conf import settings
 from django_apscheduler.jobstores import register_events, register_job
 
 from server.models.alarm import Alarm
-from server.v1.alarm.consumer import announce
+from server.v1.alarm.channels.consumer import send_message
 
 SCHEDULER = BackgroundScheduler(settings.SCHEDULER_CONFIG)
 
 
-@register_job(SCHEDULER, "cron", minute="*/1", second="0", id=f"job")
+@register_job(SCHEDULER, "cron", minutes="*/1", second="0", id=f"job")
 def get_alarms():
     now = datetime.now()
     for qs in Alarm.objects.filter(reserved_time__year=now.year,
@@ -19,7 +19,7 @@ def get_alarms():
                                    reserved_time__hour=now.hour,
                                    reserved_time__minute=now.minute):
         # 여기서 소켓으로 메세지 전송한다.
-        announce(qs)
+        send_message(qs)
 
 
 def start():
