@@ -365,3 +365,34 @@ class CategoryTest(TestCase):
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         pprint(response.json())
+
+    def test_new_category_create(self):
+        '''
+        2020.05.29
+        기존에는 카테고리를 추가할 시 가장 마지막 번호로 order가 정해졌는데
+        새로추가되면 order는 1이되고 하위 order들이 1씩 밀리도록 수정
+        '''
+        for i in range(4):
+            params = {
+                "name": f"test_user_1_{i}"
+            }
+            response = self.client.post('/api/v1/category/', params, format='json',
+                                        **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+            self.assertEqual(response.status_code, 201)
+
+        response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 200)
+
+        print("다른 user########################################################\n\n")
+
+        for i in range(4):
+            params = {
+                "name": f"test_user_2_{i}"
+            }
+            response = self.client.post('/api/v1/category/', params, format='json',
+                                        **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
+            self.assertEqual(response.status_code, 201)
+        response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
+        pprint(response.json())
+        self.assertEqual(response.status_code, 200)
