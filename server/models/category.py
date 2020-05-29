@@ -79,3 +79,9 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_url_count(self, category):
         return category.urls.count()
+
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        if instance.order != 1:
+            return Category.objects.move(instance, 1)
+        return instance
