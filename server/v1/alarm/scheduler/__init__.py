@@ -10,7 +10,7 @@ from server.v1.alarm.channels.consumer import send_message
 SCHEDULER = BackgroundScheduler(settings.SCHEDULER_CONFIG)
 
 
-@register_job(SCHEDULER, "cron", minutes="*/1", second="0", id=f"job")
+@register_job(SCHEDULER, "cron", minute="*/1", second="0", id=f"job")
 def get_alarms():
     now = datetime.now()
     for qs in Alarm.objects.filter(reserved_time__year=now.year,
