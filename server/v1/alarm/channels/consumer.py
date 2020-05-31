@@ -1,52 +1,68 @@
 import json
 
 from asgiref.sync import async_to_sync
-from channels.generic.websocket import WebsocketConsumer
+from channels.consumer import AsyncConsumer
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-# @receiver(post_save, sender=Alarm)
-# def announce():
-#     async_to_sync(channel_layer.group_send)(
-#         "shares", {
-#             "type": "share_message",
-#             "message": "heelo",
-#         }
-#     )
+
+from server.models.alarm import AlarmMessage
+
+CHANNEL_LAYER = get_channel_layer()
 
 
-class Consumer(WebsocketConsumer):
-    def websocket_connect(self, message):
-        print('1')
-        # print(message.reply_channel)
-        async_to_sync(self.channel_layer.group_add)(
-            self.groupname,
-            self.channel_name
+def send_message(alarm):
+    group = str(alarm.user.id)
+    async_to_sync(CHANNEL_LAYER.group_send)(
+        group=group,
+        message={
+            'type': 'send_message',
+            'data': {
+                'name': alarm.name,
+                'category': alarm.category.name,
+                'url': alarm.url.path,
+            }
+        }
+    )
+    # 여기서 메시지 저장
+    AlarmMessage.objects.create(user=alarm.user, alarm=alarm, message=alarm.name)
+
+
+@database_sync_to_async
+def get_alarm_messages(user):
+    alarm_messages = AlarmMessage.objects.filter(user=user)
+    return [i.message for i in alarm_messages]
+
+
+class EchoConsumer(AsyncConsumer):
+    async def websocket_connect(self, event):
+        print('connect', event)
+        await self.channel_layer.group_add(
+            group=str(self.scope['user'].id),
+            channel=self.channel_name
         )
-    def connect(self):
-        print('2')
-        print(self.scope)
-        channel_layer = get_channel_layer()
-        async_to_sync(self.channel_layer.group_add)(
-            self.groupname,
-            self.channel_name
-        )
-        print(channel_layer)
-        self.user = self.scope["user"]
-        # Group("user-{}".format(user.id)).add(message.reply_channel)
-        self.accept()
-        if self.user.id == 1:
-            self.send(text_data=json.dumps({
-                'message': "hihii"
-            }))
+        # 접속하면 여기서 뿌려줘도 될듯? 따로 api 안만들고
+        await self.send({
+            'type': 'websocket.accept'
+        })
 
-    def disconnect(self, close_code):
-        self.close(close_code)
+        try:
+            alarm_message = await get_alarm_messages(self.scope['user'])
+            if alarm_message:
+                await self.channel_layer.group_send(
+                    group=str(self.scope['user'].id),
+                    message={
+                        'type': 'send_message',
+                        'text': alarm_message
+                    }
+                )
+        except Exception as e:
+            print(e)
 
-    # Receive message from room group
-    def share_message(self, event):
-        message = event['message']
+    async def websocket_disconnect(self, event):
+        print('disconnected', event)
 
-        # Send message to WebSocket
-        self.send(text_data=json.dumps({
-            'message': message
-        }))
+    async def send_message(self, event):
+        await self.send({
+            'type': 'websocket.send',
+            'text': json.dumps(event)
+        })
