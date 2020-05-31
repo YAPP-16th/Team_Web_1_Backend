@@ -26,3 +26,17 @@ class AlarmSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alarm
         fields = '__all__'
+
+
+class AlarmMessage(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='alarms', on_delete=models.CASCADE)
+    alarm = ''
+    message = ''
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '{}'.format(self.message)
+
+    class Meta:
+        ordering = ["created_at"]
