@@ -1,7 +1,10 @@
+from datetime import datetime, timezone, timedelta
+
 from django.conf import settings
 from django.db import models
 from rest_framework import serializers
 
+from server.exceptions import ServerException
 from server.models.category import Category
 from server.models.url import Url
 
@@ -27,3 +30,9 @@ class AlarmSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alarm
         fields = '__all__'
+
+    def create(self, validated_data):
+        current_time = datetime.now(timezone(timedelta(hours=9)))
+        if validated_data['reserved_time'] < current_time:
+            raise ServerException('예약시간이 올바르지 않습니다.')
+        return super().create(validated_data)
