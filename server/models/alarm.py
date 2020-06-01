@@ -11,6 +11,7 @@ class Alarm(models.Model):
     category = models.ForeignKey(Category, related_name='alarms', on_delete=models.CASCADE)
     url = models.ForeignKey(Url, related_name='alarms', on_delete=models.CASCADE)
     name = models.CharField(max_length=10)
+    has_been_sent = models.BooleanField(default=False)
     reserved_time = models.DateTimeField(help_text='The time you want the status to change')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -26,17 +27,3 @@ class AlarmSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alarm
         fields = '__all__'
-
-
-class AlarmMessage(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='alarms', on_delete=models.CASCADE)
-    alarm = ''
-    message = ''
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return '{}'.format(self.message)
-
-    class Meta:
-        ordering = ["created_at"]
