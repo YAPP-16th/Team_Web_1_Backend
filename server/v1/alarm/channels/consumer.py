@@ -5,9 +5,15 @@ from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
-from server.models.alarm import AlarmMessage
+from server.models.alarm import Alarm
 
 CHANNEL_LAYER = get_channel_layer()
+
+
+@database_sync_to_async
+def update_alarm_transmission_status(alarm):
+    alarm.has_been_sent = True
+    alarm.save()
 
 
 def send_message(alarm):
@@ -15,7 +21,7 @@ def send_message(alarm):
     async_to_sync(CHANNEL_LAYER.group_send)(
         group=group,
         message={
-            'type': 'send_message',
+            'type': 'notify_alarm',
             'data': {
                 'name': alarm.name,
                 'category': alarm.category.name,
@@ -23,46 +29,51 @@ def send_message(alarm):
             }
         }
     )
-    # 여기서 메시지 저장
-    AlarmMessage.objects.create(user=alarm.user, alarm=alarm, message=alarm.name)
+    async_to_sync(update_alarm_transmission_status)(alarm)
 
 
-@database_sync_to_async
-def get_alarm_messages(user):
-    alarm_messages = AlarmMessage.objects.filter(user=user)
-    return [i.message for i in alarm_messages]
-
-
-class EchoConsumer(AsyncConsumer):
+class AlarmConsumer(AsyncConsumer):
     async def websocket_connect(self, event):
         print('connect', event)
         await self.channel_layer.group_add(
             group=str(self.scope['user'].id),
             channel=self.channel_name
         )
-        # 접속하면 여기서 뿌려줘도 될듯? 따로 api 안만들고
+
         await self.send({
             'type': 'websocket.accept'
         })
 
-        try:
-            alarm_message = await get_alarm_messages(self.scope['user'])
-            if alarm_message:
-                await self.channel_layer.group_send(
-                    group=str(self.scope['user'].id),
-                    message={
-                        'type': 'send_message',
-                        'text': alarm_message
-                    }
-                )
-        except Exception as e:
-            print(e)
+        await self.send_past_alarms()
 
     async def websocket_disconnect(self, event):
         print('disconnected', event)
 
-    async def send_message(self, event):
+    async def notify_alarm(self, event):
         await self.send({
             'type': 'websocket.send',
             'text': json.dumps(event)
         })
+
+    async def send_past_alarms(self):
+        past_alarms = await self.get_past_alarms(self.scope['user'])
+        if past_alarms:
+            await self.channel_layer.group_send(
+                group=str(self.scope['user'].id),
+                message={
+                    'type': 'notify_alarm',
+                    'data': past_alarms
+                }
+            )
+
+    @database_sync_to_async
+    def get_past_alarms(self, user):
+        results = []
+        alarms = Alarm.objects.filter(user=user, has_been_sent=True)
+        for alarm in alarms:
+            results.append({
+                'name': alarm.name,
+                'category': alarm.category.name,
+                'url': alarm.url.path
+            })
+        return results
