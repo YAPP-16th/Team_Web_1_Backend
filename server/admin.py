@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from server.models.alarm import Alarm, AlarmMessage
+from server.models.alarm import Alarm
 from server.models.category import Category
 from server.models.url import Url
 
@@ -16,4 +16,3 @@ admin.site.register(User, UserAdmin)
 admin.site.register(Category)
 admin.site.register(Url)
 admin.site.register(Alarm)
-admin.site.register(AlarmMessage)
