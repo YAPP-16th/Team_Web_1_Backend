@@ -26,6 +26,7 @@ def send_message(alarm):
                 'name': alarm.name,
                 'category': alarm.category.name,
                 'url': alarm.url.path,
+                'reserved_time': str(alarm.reserved_time)
             }
         }
     )
@@ -74,6 +75,7 @@ class AlarmConsumer(AsyncConsumer):
             results.append({
                 'name': alarm.name,
                 'category': alarm.category.name,
-                'url': alarm.url.path
+                'url': alarm.url.path,
+                'reserved_time': str(alarm.reserved_time)
             })
         return results
