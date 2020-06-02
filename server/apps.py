@@ -1,4 +1,5 @@
 from django.apps import AppConfig
+from django.conf import settings
 
 
 class ServerConfig(AppConfig):
@@ -6,4 +7,5 @@ class ServerConfig(AppConfig):
 
     def ready(self):
         from server.v1.alarm import scheduler
-        scheduler.start()
+        if settings.SCHEDULER_AUTOSTART:
+            scheduler.start()
