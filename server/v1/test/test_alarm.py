@@ -126,7 +126,7 @@ class AlarmTest(TestCase):
 
         response = self.client.get(f'/api/v1/alarm/1/',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 405)
 
     def test_fail_delete_alarm(self):
         '''
