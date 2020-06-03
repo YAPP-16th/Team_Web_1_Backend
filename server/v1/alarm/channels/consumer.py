@@ -6,6 +6,7 @@ from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
 from server.models.alarm import Alarm
+from urlink import settings
 
 CHANNEL_LAYER = get_channel_layer()
 
@@ -17,8 +18,13 @@ def update_alarm_transmission_status(alarm):
 
 
 def send_message(alarm):
+    if settings.DEBUG:
+        channel_layer = get_channel_layer()
+    else:
+        channel_layer = CHANNEL_LAYER
+
     group = str(alarm.user.id)
-    async_to_sync(CHANNEL_LAYER.group_send)(
+    async_to_sync(channel_layer.group_send)(
         group=group,
         message={
             'type': 'notify_alarm',
