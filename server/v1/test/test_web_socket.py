@@ -10,6 +10,12 @@ from server.models.user import UserSerializer
 from server.v1.alarm.channels.consumer import send_message
 from urlink.routing import application
 
+TEST_CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
+
 
 @database_sync_to_async
 def get_user_with_token(username='hongjae', password='033156as!', email='bjq913@gmail.com'):
@@ -58,11 +64,13 @@ async def auth_connect(token):
 @pytest.mark.django_db(transaction=True)
 class TestWebsockets:
 
-    async def test_connect_websocket(self):
+    async def test_connect_websocket(self, settings):
         '''
         소켓연결이 되는지 테스트
         연결이되면 실행된 알람들이 반환되는데 지금 생성한 유저이므로 빈 배열이 반환되면 정상
         '''
+        settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
+
         user, token = await get_user_with_token()
         communicator = await auth_connect(token)
 
@@ -71,10 +79,12 @@ class TestWebsockets:
         assert data == []  # 초기에 전송된 알람이 없으므로 []가 반환된다.
         await communicator.disconnect()
 
-    async def test_send_receive_message_from_consumer(self):
+    async def test_send_receive_message_from_consumer(self, settings):
         '''
         소켓을 연결한 후 서버에 메세지를 보내고 echo 되는지 테스트
         '''
+        settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
+
         channel_layer = get_channel_layer()
         user, token = await get_user_with_token()
         communicator = await auth_connect(token)
@@ -91,11 +101,13 @@ class TestWebsockets:
         assert data == 'This is a test message.'
         await communicator.disconnect()
 
-    async def test_send_message_func(self):
+    async def test_send_message_func(self, settings):
         '''
         consumer.py의 send_message()함수를 테스트한다.
         send_message() = 시간에 맞는 알람을 불러와서 알람을 등록한 사용자 그룹에 알람 메세지를 전송한다.
         '''
+        settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
+
         user, token = await get_user_with_token()
         communicator = await auth_connect(token)
         response = await communicator.receive_json_from()
