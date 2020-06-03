@@ -34,12 +34,16 @@ def send_message(alarm):
 
 
 class AlarmConsumer(AsyncConsumer):
+    GROUP_LIST = []
+
     async def websocket_connect(self, event):
         print('connect', event)
         await self.channel_layer.group_add(
             group=str(self.scope['user'].id),
             channel=self.channel_name
         )
+
+        self.GROUP_LIST.append(str(self.scope['user'].id))
 
         await self.send({
             'type': 'websocket.accept'
@@ -49,6 +53,22 @@ class AlarmConsumer(AsyncConsumer):
 
     async def websocket_disconnect(self, event):
         print('disconnected', event)
+        await self.channel_layer.group_discard(
+            group=str(self.scope['user'].id),
+            channel=self.channel_name
+        )
+
+        self.GROUP_LIST.remove(str(self.scope['user'].id))
+
+    async def websocket_receive(self, event):
+        print('receive', event)
+        await self.channel_layer.group_send(
+            group=str(self.scope['user'].id),
+            message={
+                'type': 'notify_alarm',
+                'data': json.loads(event['text']).get('message', '')
+            }
+        )
 
     async def notify_alarm(self, event):
         await self.send({
@@ -58,14 +78,13 @@ class AlarmConsumer(AsyncConsumer):
 
     async def send_past_alarms(self):
         past_alarms = await self.get_past_alarms(self.scope['user'])
-        if past_alarms:
-            await self.channel_layer.group_send(
-                group=str(self.scope['user'].id),
-                message={
-                    'type': 'notify_alarm',
-                    'data': past_alarms
-                }
-            )
+        await self.channel_layer.group_send(
+            group=str(self.scope['user'].id),
+            message={
+                'type': 'notify_alarm',
+                'data': past_alarms
+            }
+        )
 
     @database_sync_to_async
     def get_past_alarms(self, user):
