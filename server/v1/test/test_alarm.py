@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -34,10 +36,16 @@ class AlarmTest(TestCase):
                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         self.url_id = response.json()['success'][0]['id']
 
+        self.tomorrow = datetime.now() + timedelta(days=1)
+
     def test_success_alarm_create(self):
         params = {
             "name": '알람 테스트',
-            'reserved_time': {"year": "2020", "month": "06", "day": "2", "hour": "20", "minute": "28"}
+            'reserved_time': {"year": self.tomorrow.year,
+                              "month": self.tomorrow.month,
+                              "day": self.tomorrow.day,
+                              "hour": self.tomorrow.hour,
+                              "minute": self.tomorrow.minute}
         }
 
         response = self.client.post(f'/api/v1/alarm/?category={self.category_id}&url={self.url_id}', params,
@@ -48,7 +56,11 @@ class AlarmTest(TestCase):
 
         params = {
             "name": '알람 테스트',
-            'reserved_time': {"year": "2020", "month": "06", "day": "2", "hour": "22", "minute": "28"}
+            'reserved_time': {"year": self.tomorrow.year,
+                              "month": self.tomorrow.month,
+                              "day": self.tomorrow.day,
+                              "hour": self.tomorrow.hour,
+                              "minute": self.tomorrow.minute}
         }
 
         response = self.client.post(f'/api/v1/alarm/?category={self.category_id}&url={self.url_id}', params,
@@ -112,7 +124,11 @@ class AlarmTest(TestCase):
     def test_success_delete_alarm(self):
         params = {
             "name": '알람 테스트',
-            'reserved_time': {"year": "2020", "month": "06", "day": "2", "hour": "20", "minute": "28"}
+            'reserved_time': {"year": self.tomorrow.year,
+                              "month": self.tomorrow.month,
+                              "day": self.tomorrow.day,
+                              "hour": self.tomorrow.hour,
+                              "minute": self.tomorrow.minute}
         }
 
         response = self.client.post(f'/api/v1/alarm/?category={self.category_id}&url={self.url_id}', params,
@@ -136,7 +152,11 @@ class AlarmTest(TestCase):
         '''
         params = {
             "name": '알람 테스트',
-            'reserved_time': {"year": "2020", "month": "06", "day": "2", "hour": "20", "minute": "28"}
+            'reserved_time': {"year": self.tomorrow.year,
+                              "month": self.tomorrow.month,
+                              "day": self.tomorrow.day,
+                              "hour": self.tomorrow.hour,
+                              "minute": self.tomorrow.minute}
         }
 
         response = self.client.post(f'/api/v1/alarm/?category={self.category_id}&url={self.url_id}', params,
