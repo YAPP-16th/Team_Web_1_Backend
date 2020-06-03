@@ -11,3 +11,5 @@ requests==2.23.0
 django-debug-toolbar==2.2
 django-apscheduler==0.3.0
 django-request-logging==0.7.1
+pytest-django==3.9.0
+pytest-asyncio==0.12.0
