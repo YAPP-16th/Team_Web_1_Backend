@@ -11,10 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import datetime
-import logging
 import os
-
-import sqlparse
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -81,9 +78,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware'
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'request_logging.middleware.LoggingMiddleware',
 ]
-INTERNAL_IPS = ('127.0.0.1')
+
 ROOT_URLCONF = 'urlink.urls'
 
 TEMPLATES = [
@@ -169,54 +167,49 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
 }
 
-
-class CustomFormatter(logging.Formatter):
-    def format(self, record):
-        sql = record.getMessage()
-        formatted_sql = sqlparse.format(sql, reindent=True, keyword_case='upper')
-
-        try:
-            import pygments
-            from pygments.lexers import SqlLexer
-            from pygments.formatters import TerminalTrueColorFormatter
-
-            formatted_sql = pygments.highlight(
-                formatted_sql,
-                SqlLexer(),
-                TerminalTrueColorFormatter(style='monokai')
-            )
-        except ImportError:
-            pass
-
-        return formatted_sql
-
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'simple': {
-            '()': 'urlink.settings.CustomFormatter',
+            '()': 'logs.CustomFormatter',
             'format': '{sql}',
             'style': '{',
-        },
+        }
     },
     'handlers': {
-        'console': {
+        'sql': {
             'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/db.backends.sql.log'),
+            'maxBytes': 1 * 1024 * 1024,
+            'backupCount': 3,
             'formatter': 'simple',
         }
     },
     'loggers': {
         'django.db.backends': {
-            'handlers': ['console'],
+            'handlers': ['sql'],
             'level': 'DEBUG',  # change debug level as appropiate
         },
+        # 'django.request': {
+        #     'handlers': ['request'],
+        #     'propagate': False,
+        #     'level': 'DEBUG',
+        # },
     },
 }
 
 ASGI_APPLICATION = "urlink.routing.application"
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 SCHEDULER_CONFIG = {
     "apscheduler.jobstores.default": {
