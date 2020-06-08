@@ -15,6 +15,8 @@ class Alarm(models.Model):
     url = models.ForeignKey(Url, related_name='alarms', on_delete=models.CASCADE)
     name = models.CharField(max_length=10)
     has_been_sent = models.BooleanField(default=False)
+    has_done = models.BooleanField(default=False)
+    has_read = models.BooleanField(default=False)
     reserved_time = models.DateTimeField(help_text='The time you want the status to change')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
