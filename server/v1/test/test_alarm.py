@@ -35,7 +35,7 @@ class AlarmTest(TestCase):
         response = self.client.post(f'/api/v1/url/?category={self.category_id}', params, format='json',
                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         self.url_id = response.json()[0]['id']
-
+        
         self.tomorrow = datetime.now() + timedelta(days=1)
 
     def test_success_alarm_create(self):
