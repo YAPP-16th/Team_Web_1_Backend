@@ -36,39 +36,31 @@ class UrlListCreateAPIView(generics.ListCreateAPIView):
         queryset = Url.objects.filter(user=user, category=category)
         return queryset
 
-    def post(self, request, *args, **kwargs):
-        user = self.request.user.pk
-        category_id = self.request.query_params.get('category')
-        paths = self.request.data.get('path')
+    def _save(self, request, *args, **kwargs):
+        crawler = Crawler()
+        results = []
+        for path in request.data.get('path', []):
+            html = crawler.get_html(path)
+            parsed_html = crawler.parse_html(html)
+            request.data['path'] = path
+            request.data['title'] = parsed_html['title'][:25]
+            request.data['description'] = None if parsed_html['description'] == '알수없음' else parsed_html['description'][:100]
+            request.data['image_path'] = parsed_html['image_path']
+            request.data['favicon_path'] = parsed_html['favicon_path']
+            results.append(self.create(request, *args, **kwargs).data)
+        return results
 
+    def post(self, request, *args, **kwargs):
+        category_id = self.request.query_params.get('category')
         category = Category.objects.filter(id=category_id)
-        if category.exists():
-            response = {'success': [], 'fail': []}
-            crawler = Crawler()
-            for path in paths:
-                # TODO
-                #  시간을 줄일방법이 없는지?
-                #  이쪽 소스를 들어낼 수 없는지?
-                #  메세지큐??
-                try:
-                    html = crawler.get_html(path)
-                    parsed_html = crawler.parse_html(html)
-                    request.data['path'] = path
-                    request.data['title'] = parsed_html['title'][:25]
-                    request.data['description'] = parsed_html['description'][:100]
-                    request.data['image_path'] = parsed_html['image_path']
-                    request.data['category'] = category_id
-                    request.data['user'] = user
-                    response['success'].append(self.create(request, *args, **kwargs).data)
-                except ServerException as exception:
-                    response['fail'].append({
-                        'path': path,
-                        'reason': exception.message
-                    })
-            if not response['success']:
-                return Response(response, status=status.HTTP_404_NOT_FOUND)
-            return Response(response, status=status.HTTP_201_CREATED)
-        raise ServerException("해당 카테고리는 존재하지 않습니다.")
+        if category.exists() and len(category) == 1 and category[0].user == self.request.user:
+            request.data['category'] = category_id
+            request.data['user'] = self.request.user.pk
+            results = self._save(request, *args, **kwargs)
+            if results:
+                return Response(results, status=status.HTTP_201_CREATED)
+            raise ServerException("URL이 존재하지 않습니다.")
+        raise ServerException('카테고리가 존재하지 않거나 해당 카테고리에 대한 권한이 존재하지 않습니다.')
 
 
 class UrlDestroyAPIView(generics.DestroyAPIView):
