@@ -31,7 +31,7 @@ class UrlSerializer(serializers.ModelSerializer):
         model = Url
         fields = '__all__'
 
-    def has_alarms(self, url):
+    def get_has_alarms(self, url):
         return url.alarms.exists()
 
 
