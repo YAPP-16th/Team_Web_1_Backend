@@ -2,7 +2,6 @@ import json
 
 import pytest
 from channels.db import database_sync_to_async
-from channels.layers import get_channel_layer
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth import get_user_model
 
@@ -50,7 +49,7 @@ def create_alarm(user):
 
 @database_sync_to_async
 def call_send_message_func(alarm):
-    send_message(alarm)
+    send_message(alarm, debug=True)
 
 
 async def auth_connect(token):
@@ -75,7 +74,7 @@ class TestWebsockets:
         communicator = await auth_connect(token)
 
         response = await communicator.receive_json_from()
-        data = response.get('data')
+        data = response.get('message')
         assert data == []  # 초기에 전송된 알람이 없으므로 []가 반환된다.
         await communicator.disconnect()
 
@@ -85,20 +84,16 @@ class TestWebsockets:
         '''
         settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
 
-        channel_layer = get_channel_layer()
         user, token = await get_user_with_token()
         communicator = await auth_connect(token)
         response = await communicator.receive_json_from()
-        assert response.get('data') == []
+        assert response.get('message') == []
 
-        await channel_layer.group_send(str(user.id),
-                                       message={
-                                           'type': 'websocket.receive',
-                                           'text': json.dumps({'message': 'This is a test message.'})
-                                       })
+        await communicator.send_to(text_data=json.dumps({'message': 'This is a test message.'}))
+
         response = await communicator.receive_json_from()
-        data = response.get('data')
-        assert data == 'This is a test message.'
+        data = response.get('message')
+        assert data == 'echo message'
         await communicator.disconnect()
 
     async def test_send_message_func(self, settings):
@@ -111,12 +106,13 @@ class TestWebsockets:
         user, token = await get_user_with_token()
         communicator = await auth_connect(token)
         response = await communicator.receive_json_from()
-        assert response.get('data') == []
+        assert response.get('message') == []
 
         alarm = await create_alarm(user)
         assert alarm.name == 'test'
 
         await call_send_message_func(alarm)
         response = await communicator.receive_json_from()
-        assert response.get('data').get('name') == 'test'
+        data = response.get('message')
+        assert data.get('name') == 'test'
         await communicator.disconnect()
