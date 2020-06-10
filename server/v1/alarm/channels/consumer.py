@@ -1,12 +1,11 @@
 import json
 
 from asgiref.sync import async_to_sync
-from channels.consumer import AsyncConsumer
 from channels.db import database_sync_to_async
+from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
 
 from server.models.alarm import Alarm
-from urlink import settings
 
 CHANNEL_LAYER = get_channel_layer()
 
@@ -17,90 +16,107 @@ def update_alarm_transmission_status(alarm):
     alarm.save()
 
 
-def send_message(alarm):
-    if settings.DEBUG:
-        channel_layer = get_channel_layer()
-    else:
-        channel_layer = CHANNEL_LAYER
+def send_message(alarm, debug=False):
+    channel_layer = get_channel_layer() if debug else CHANNEL_LAYER
 
     group = str(alarm.user.id)
     async_to_sync(channel_layer.group_send)(
         group=group,
         message={
-            'type': 'notify_alarm',
-            'data': {
+            'type': 'send_message',
+            'message': {
+                'id': alarm.id,
                 'name': alarm.name,
-                'category': alarm.category.name,
-                'url': alarm.url.path,
-                'reserved_time': str(alarm.reserved_time)
+                'reserved_time': str(alarm.reserved_time),
+                'url_path': alarm.url.path,
+                'url_title': alarm.url.title,
+                'url_description': alarm.url.description,
+                'url_image_path': alarm.url.image_path,
+                'url_favicon_path': alarm.url.favicon_path
             }
         }
     )
     async_to_sync(update_alarm_transmission_status)(alarm)
 
 
-class AlarmConsumer(AsyncConsumer):
-    GROUP_LIST = []
-
-    async def websocket_connect(self, event):
-        print('connect', event)
+class AlarmConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        # 같은 정보를 받는 분리된 사용자로 취급해야하는데..
         await self.channel_layer.group_add(
             group=str(self.scope['user'].id),
             channel=self.channel_name
         )
 
-        self.GROUP_LIST.append(str(self.scope['user'].id))
-
-        await self.send({
-            'type': 'websocket.accept'
-        })
-
+        await self.accept()
         await self.send_past_alarms()
-
-    async def websocket_disconnect(self, event):
-        print('disconnected', event)
-        await self.channel_layer.group_discard(
-            group=str(self.scope['user'].id),
-            channel=self.channel_name
-        )
-
-        self.GROUP_LIST.remove(str(self.scope['user'].id))
-
-    async def websocket_receive(self, event):
-        print('receive', event)
-        await self.channel_layer.group_send(
-            group=str(self.scope['user'].id),
-            message={
-                'type': 'notify_alarm',
-                'data': json.loads(event['text']).get('message', '')
-            }
-        )
-
-    async def notify_alarm(self, event):
-        await self.send({
-            'type': 'websocket.send',
-            'text': json.dumps(event)
-        })
 
     async def send_past_alarms(self):
         past_alarms = await self.get_past_alarms(self.scope['user'])
         await self.channel_layer.group_send(
             group=str(self.scope['user'].id),
             message={
-                'type': 'notify_alarm',
-                'data': past_alarms
+                'type': 'send_message',
+                'message': past_alarms
             }
         )
 
     @database_sync_to_async
     def get_past_alarms(self, user):
         results = []
-        alarms = Alarm.objects.filter(user=user, has_been_sent=True)
+        alarms = Alarm.objects.filter(user=user, has_been_sent=True, has_done=False)
         for alarm in alarms:
             results.append({
+                'id': alarm.id,
                 'name': alarm.name,
-                'category': alarm.category.name,
-                'url': alarm.url.path,
-                'reserved_time': str(alarm.reserved_time)
+                'reserved_time': str(alarm.reserved_time),
+                'url_path': alarm.url.path,
+                'url_title': alarm.url.title,
+                'url_description': alarm.url.description,
+                'url_image_path': alarm.url.image_path,
+                'url_favicon_path': alarm.url.favicon_path
             })
         return results
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            group=str(self.scope['user'].id),
+            channel=self.channel_name
+        )
+
+    async def receive(self, text_data=None, bytes_data=None):
+        message = json.loads(text_data)
+        alarm_id = message.get('alarm_id')
+        action = message.get('action')
+
+        if alarm_id and action:
+            await self.change_alarm_status(alarm_id, action)
+            await self.channel_layer.group_send(
+                group=str(self.scope['user'].id),
+                message={
+                    'type': 'send_message',
+                    'message': 'success'
+                }
+            )
+        else:
+            await self.channel_layer.group_send(
+                group=str(self.scope['user'].id),
+                message={
+                    'type': 'send_message',
+                    'message': 'echo message'
+                }
+            )
+
+    async def send_message(self, event):
+        message = event['message']
+        await self.send(text_data=json.dumps({
+            'message': message
+        }))
+
+    @database_sync_to_async
+    def change_alarm_status(self, alarm_id, action):
+        alarm = Alarm.objects.get(id=alarm_id)
+        if action == 'read':
+            alarm.has_read = True
+        elif action == 'done':
+            alarm.has_done = True
+        alarm.save()
