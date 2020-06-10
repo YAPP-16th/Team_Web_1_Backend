@@ -25,9 +25,14 @@ class Url(models.Model):
 
 
 class UrlSerializer(serializers.ModelSerializer):
+    has_alarms = serializers.SerializerMethodField()
+
     class Meta:
         model = Url
         fields = '__all__'
+
+    def has_alarms(self, url):
+        return url.alarms.exists()
 
 
 class UrlFilter(rest_framework_filters.FilterSet):
