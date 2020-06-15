@@ -11,8 +11,8 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.6, 3.7, 3.8]
-        redis-version: [4, 5]
+        python-version: [3.6, 3.7]
+        redis-version: [6]
 
     steps:
     - uses: actions/checkout@v2
