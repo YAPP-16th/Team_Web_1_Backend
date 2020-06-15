@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 import datetime
 import os
 
+import redis
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,6 +29,9 @@ GOOGLE_API_KEY = 'AIzaSyD9VzCBawbBZR6LNJdbFWVJF_HYdiGQc_Y'
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = 6379
 
 # Application definition
 
@@ -209,7 +214,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
         },
     },
 }
@@ -224,3 +229,6 @@ SCHEDULER_CONFIG = {
     'apscheduler.timezone': 'Asia/Seoul'
 }
 SCHEDULER_AUTOSTART = True
+
+REDIS_CONNECTION_POOL = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=0)
+REDIS = redis.Redis(connection_pool=REDIS_CONNECTION_POOL)
