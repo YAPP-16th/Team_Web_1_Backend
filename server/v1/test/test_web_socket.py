@@ -6,7 +6,7 @@ from channels.testing import WebsocketCommunicator
 from django.contrib.auth import get_user_model
 
 from server.models.user import UserSerializer
-from server.v1.alarm.channels.consumer import send_message
+from server.v1.alarm.channels import send_message
 from urlink.routing import application
 
 TEST_CHANNEL_LAYERS = {
@@ -81,24 +81,26 @@ class TestWebsockets:
     async def test_send_receive_message_from_consumer(self, settings):
         '''
         소켓을 연결한 후 서버에 메세지를 보내고 echo 되는지 테스트
+        기능변경으로 다른 테스트로 대체 - 2020.06.15
         '''
-        settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
-
-        user, token = await get_user_with_token()
-        communicator = await auth_connect(token)
-        response = await communicator.receive_json_from()
-        assert response.get('message') == []
-
-        await communicator.send_to(text_data=json.dumps({'message': 'This is a test message.'}))
-
-        response = await communicator.receive_json_from()
-        data = response.get('message')
-        assert data == 'echo message'
-        await communicator.disconnect()
+        pass
+        # settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
+        #
+        # user, token = await get_user_with_token()
+        # communicator = await auth_connect(token)
+        # response = await communicator.receive_json_from()
+        # assert response.get('message') == []
+        #
+        # await communicator.send_to(text_data=json.dumps({'message': 'This is a test message.'}))
+        #
+        # response = await communicator.receive_json_from()
+        # data = response.get('message')
+        # assert data == 'echo message'
+        # await communicator.disconnect()
 
     async def test_send_message_func(self, settings):
         '''
-        consumer.py의 send_message()함수를 테스트한다.
+        channels 패키지의 send_message()함수를 테스트한다.
         send_message() = 시간에 맞는 알람을 불러와서 알람을 등록한 사용자 그룹에 알람 메세지를 전송한다.
         '''
         settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
@@ -115,4 +117,27 @@ class TestWebsockets:
         response = await communicator.receive_json_from()
         data = response.get('message')
         assert data.get('name') == 'test'
+        await communicator.disconnect()
+
+    async def test_send_action_message_to_change_alarm_status(self, settings):
+        '''
+        소켓을 연결한 후 서버에 메세지를 보내고 알람 상태가 변경되는지 테스트
+        '''
+        settings.CHANNEL_LAYERS = TEST_CHANNEL_LAYERS
+
+        user, token = await get_user_with_token()
+        communicator = await auth_connect(token)
+        await communicator.receive_json_from()
+
+        # 알람 생성
+        alarm = await create_alarm(user)
+
+        await communicator.send_to(text_data=json.dumps({
+            'alarm_id': str(alarm.id),
+            'action': 'done'
+        }))
+
+        response = await communicator.receive_json_from()
+        data = response.get('message')
+        assert data == 'success'
         await communicator.disconnect()
