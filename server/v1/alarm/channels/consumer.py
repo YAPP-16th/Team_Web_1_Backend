@@ -1,51 +1,25 @@
 import json
 
-from asgiref.sync import async_to_sync
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.layers import get_channel_layer
 
 from server.models.alarm import Alarm
-
-CHANNEL_LAYER = get_channel_layer()
-
-
-@database_sync_to_async
-def update_alarm_transmission_status(alarm):
-    alarm.has_been_sent = True
-    alarm.save()
-
-
-def send_message(alarm, debug=False):
-    channel_layer = get_channel_layer() if debug else CHANNEL_LAYER
-
-    group = str(alarm.user.id)
-    async_to_sync(channel_layer.group_send)(
-        group=group,
-        message={
-            'type': 'send_message',
-            'message': {
-                'id': alarm.id,
-                'name': alarm.name,
-                'reserved_time': str(alarm.reserved_time),
-                'url_path': alarm.url.path,
-                'url_title': alarm.url.title,
-                'url_description': alarm.url.description,
-                'url_image_path': alarm.url.image_path,
-                'url_favicon_path': alarm.url.favicon_path
-            }
-        }
-    )
-    async_to_sync(update_alarm_transmission_status)(alarm)
+from server.v1.alarm.channels.utils import get_delimiter
+from urlink.settings import REDIS
 
 
 class AlarmConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # 같은 정보를 받는 분리된 사용자로 취급해야하는데..
+        user_id = str(self.scope['user'].id)
+        delimiter = get_delimiter(self.scope['headers'])
+        self.group_id = f"{user_id}{delimiter}"
+
         await self.channel_layer.group_add(
-            group=str(self.scope['user'].id),
+            group=self.group_id,
             channel=self.channel_name
         )
+
+        REDIS.lpush(user_id, self.group_id)
 
         await self.accept()
         await self.send_past_alarms()
@@ -53,7 +27,7 @@ class AlarmConsumer(AsyncWebsocketConsumer):
     async def send_past_alarms(self):
         past_alarms = await self.get_past_alarms(self.scope['user'])
         await self.channel_layer.group_send(
-            group=str(self.scope['user'].id),
+            group=self.group_id,
             message={
                 'type': 'send_message',
                 'message': past_alarms
@@ -79,32 +53,35 @@ class AlarmConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(
-            group=str(self.scope['user'].id),
+            group=self.group_id,
             channel=self.channel_name
         )
+        user_id = str(self.scope['user'].id)
+        REDIS.lrem(user_id, 1, self.group_id)
 
     async def receive(self, text_data=None, bytes_data=None):
-        message = json.loads(text_data)
-        alarm_id = message.get('alarm_id')
-        action = message.get('action')
+        try:
+            message = json.loads(text_data)
+            alarm_id = message.get('alarm_id')
+            action = message.get('action')
 
-        if alarm_id and action:
-            await self.change_alarm_status(alarm_id, action)
-            await self.channel_layer.group_send(
-                group=str(self.scope['user'].id),
-                message={
-                    'type': 'send_message',
-                    'message': 'success'
-                }
-            )
+            if alarm_id and action and action in ['read', 'done']:
+                await self.change_alarm_status(alarm_id, action)
+        except Exception as e:
+            await self.close()
         else:
-            await self.channel_layer.group_send(
-                group=str(self.scope['user'].id),
-                message={
-                    'type': 'send_message',
-                    'message': 'echo message'
-                }
-            )
+            user_id = str(self.scope['user'].id)
+            user_group_list = REDIS.lrange(user_id, 0, -1)
+            if user_group_list:
+                for user_group in user_group_list:
+                    group = user_group.decode('utf-8')
+                    await self.channel_layer.group_send(
+                        group=group,
+                        message={
+                            'type': 'send_message',
+                            'message': 'success'
+                        }
+                    )
 
     async def send_message(self, event):
         message = event['message']

@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -7,6 +9,7 @@ class Crawler:
     IMAGE_FAVICON = 'https://urlink.s3.ap-northeast-2.amazonaws.com/static/favicon.png'
 
     def get_html(self, path):
+        self.path = path
         headers = {
             'Connection': 'keep-alive',
             'Pragma': 'no-cache',
@@ -16,7 +19,7 @@ class Crawler:
             'Sec-Fetch-Dest': 'document'
         }
         try:
-            return requests.get(path, headers=headers, timeout=5).text
+            return requests.get(self.path, headers=headers, timeout=5).text
         except Exception as e:
             return str(e)
 
@@ -54,8 +57,21 @@ class Crawler:
 
         if image_path == '알수없음':
             image_path = self.IMAGE_404
+        if urlparse(image_path).scheme == '' and urlparse(image_path).netloc == '':
+            url = urlparse(self.path)
+            image_path = f"{url.scheme}://{url.netloc}{image_path}"
+        elif urlparse(image_path).scheme == '' and urlparse(image_path).netloc != '':
+            url = urlparse(self.path)
+            image_path = f"{url.scheme}:{image_path}"
+
         if favicon_path == '알수없음':
             favicon_path = self.IMAGE_FAVICON
+        if urlparse(favicon_path).scheme == '' and urlparse(favicon_path).netloc == '':
+            url = urlparse(self.path)
+            favicon_path = f"{url.scheme}://{url.netloc}{favicon_path}"
+        elif urlparse(favicon_path).scheme == '' and urlparse(favicon_path).netloc != '':
+            url = urlparse(self.path)
+            favicon_path = f"{url.scheme}:{favicon_path}"
 
         return {
             'title': title,
@@ -74,6 +90,7 @@ if __name__ == "__main__":
                  'https://tech.cloud.nongshim.co.kr/techblog/', 'https://mail.google.com/mail/u/0/#inbox',
                  'https://syundev.tistory.com/29?category=868616', 'https://github.com/hotire/turnover-story',
                  'http://www.bloter.net/archives/257437',
-                 'https://www.youtube.com/watch?v=r6TFnNQsQLY&feature=youtu.be']:
+                 'https://www.youtube.com/watch?v=r6TFnNQsQLY&feature=youtu.be',
+                 'https://ofcourse.kr/css-course/cursor-%EC%86%8D%EC%84%B1']:
         html = c.get_html(path)
         pprint(c.parse_html(html))
