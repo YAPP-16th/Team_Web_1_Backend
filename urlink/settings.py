@@ -231,3 +231,4 @@ SCHEDULER_CONFIG = {
 SCHEDULER_AUTOSTART = True
 
 REDIS_CONNECTION_POOL = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=0)
+REDIS = redis.Redis(connection_pool=REDIS_CONNECTION_POOL)
