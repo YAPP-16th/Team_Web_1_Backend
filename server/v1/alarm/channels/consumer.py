@@ -30,7 +30,8 @@ class AlarmConsumer(AsyncWebsocketConsumer):
             group=self.group_id,
             message={
                 'type': 'send_message',
-                'message': past_alarms
+                'message': past_alarms,
+                'status': 'initial'
             }
         )
 
@@ -47,7 +48,9 @@ class AlarmConsumer(AsyncWebsocketConsumer):
                 'url_title': alarm.url.title,
                 'url_description': alarm.url.description,
                 'url_image_path': alarm.url.image_path,
-                'url_favicon_path': alarm.url.favicon_path
+                'url_favicon_path': alarm.url.favicon_path,
+                'alarm_has_read': alarm.has_read,
+                'alarm_has_done': alarm.has_done,
             })
         return results
 
@@ -72,6 +75,7 @@ class AlarmConsumer(AsyncWebsocketConsumer):
         else:
             user_id = str(self.scope['user'].id)
             user_group_list = REDIS.lrange(user_id, 0, -1)
+            past_alarms = await self.get_past_alarms(self.scope['user'])
             if user_group_list:
                 for user_group in user_group_list:
                     group = user_group.decode('utf-8')
@@ -79,14 +83,17 @@ class AlarmConsumer(AsyncWebsocketConsumer):
                         group=group,
                         message={
                             'type': 'send_message',
-                            'message': 'success'
+                            'message': past_alarms,
+                            'status': 'update'
                         }
                     )
 
     async def send_message(self, event):
         message = event['message']
+        status = event['status']
         await self.send(text_data=json.dumps({
-            'message': message
+            'message': message,
+            'status': status
         }))
 
     @database_sync_to_async
