@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import datetime
 import os
+from socket import gethostname
 
 import redis
 
@@ -42,8 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'server.apps.ServerConfig',
-    # 'server',
+    'server',
     'corsheaders',
 
     'rest_framework',
@@ -53,7 +53,7 @@ INSTALLED_APPS = [
 
     'drf_yasg',
     'debug_toolbar',
-    'django_apscheduler',
+    'django_crontab',
 ]
 
 AUTH_USER_MODEL = 'server.User'
@@ -219,16 +219,16 @@ CHANNEL_LAYERS = {
     },
 }
 
-SCHEDULER_CONFIG = {
-    "apscheduler.jobstores.default": {
-        "class": "django_apscheduler.jobstores:DjangoJobStore"
-    },
-    'apscheduler.executors.processpool': {
-        "type": "threadpool"
-    },
-    'apscheduler.timezone': 'Asia/Seoul'
-}
-SCHEDULER_AUTOSTART = True
+if gethostname().startswith('johongje-'):
+    CRONJOBS_LOG_PATH = '/Users/hongjae/develop/Team_Web_1_Backend/logs/cronjob.log'
+else:
+    CRONJOBS_LOG_PATH = '/home/ubuntu/projects/Team_Web_1_Backend/logs/cronjob.log'
+
+CRONJOBS = [
+    ('* * * * *', 'server.v1.alarm.scheduler.get_alarms',
+     f'> {CRONJOBS_LOG_PATH} 2>&1'),
+]
+CRONTAB_LOCK_JOBS = True
 
 REDIS_CONNECTION_POOL = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=0)
 REDIS = redis.Redis(connection_pool=REDIS_CONNECTION_POOL)
