@@ -139,5 +139,5 @@ class TestWebsockets:
 
         response = await communicator.receive_json_from()
         data = response.get('message')
-        assert data == 'success'
+        assert data == []
         await communicator.disconnect()
