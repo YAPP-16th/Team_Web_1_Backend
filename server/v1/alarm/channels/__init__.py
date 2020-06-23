@@ -28,7 +28,9 @@ def send_message(alarm, debug=False):
             'url_title': alarm.url.title,
             'url_description': alarm.url.description,
             'url_image_path': alarm.url.image_path,
-            'url_favicon_path': alarm.url.favicon_path
+            'url_favicon_path': alarm.url.favicon_path,
+            'alarm_has_read': alarm.has_read,
+            'alarm_has_done': alarm.has_done,
         }
         for user_group in user_group_list:
             group = user_group.decode('utf-8')
@@ -36,7 +38,8 @@ def send_message(alarm, debug=False):
                 group=group,
                 message={
                     'type': 'send_message',
-                    'message': message
+                    'message': message,
+                    'status': 'alarm'
                 }
             )
     async_to_sync(update_alarm_transmission_status)(alarm)
