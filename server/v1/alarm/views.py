@@ -62,7 +62,6 @@ class AlarmListCreateAPIView(generics.ListCreateAPIView):
                 f"{time['year']}-{time['month']}-{time['day']} {time['hour']}:{time['minute']}",
                 '%Y-%m-%d %H:%M')
         except Exception as e:
-            print(e)
             raise ServerException('예약시간 형식이 올바르지 않습니다.')
         else:
             return _datetime

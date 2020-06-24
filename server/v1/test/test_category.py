@@ -26,15 +26,15 @@ class CategoryTest(TestCase):
         for i in range(4):
             response = self.client.post('/api/v1/category/', params, format='json',
                                         **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-            pprint(response.json())
+
             self.assertEqual(response.status_code, 201)
 
-        print("다른 user########################################################\n\n")
+
 
         for i in range(4):
             response = self.client.post('/api/v1/category/', params, format='json',
                                         **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
-            pprint(response.json())
+
             self.assertEqual(response.status_code, 201)
 
     def test_fail_category_create(self):
@@ -47,7 +47,7 @@ class CategoryTest(TestCase):
         }
         response = self.client.post('/api/v1/category/', params, format='json',
                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}1'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 401)
 
     def test_success_category_list(self):
@@ -59,14 +59,11 @@ class CategoryTest(TestCase):
                              **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
-        print("다른 user########################################################\n\n")
-        print('생성한 카테고리가 하나도 없는 경우')
-
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
     def test_fail_category_list(self):
@@ -75,7 +72,7 @@ class CategoryTest(TestCase):
         1) 잘못된 토큰으로 조회
         '''
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}1'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 401)
 
     def test_success_category_get(self):
@@ -88,7 +85,7 @@ class CategoryTest(TestCase):
 
         response2 = self.client.get(f'/api/v1/category/{category}/',
                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response2.json())
+
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(response.json(), response2.json())
 
@@ -108,13 +105,13 @@ class CategoryTest(TestCase):
         category = response.json()['id']
         response = self.client.get(f'/api/v1/category/{category + 1}/',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 404)
 
         # 권한이 없는 pk로 조회
         response = self.client.get(f'/api/v1/category/{category}/',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 403)
 
     def test_success_category_delete(self):
@@ -137,12 +134,12 @@ class CategoryTest(TestCase):
                              **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         response = self.client.delete(f'/api/v1/category/2/',
                                       **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         self.assertEqual(response.status_code, 204)
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
 
     def test_fail_category_delete(self):
         '''
@@ -161,13 +158,13 @@ class CategoryTest(TestCase):
         category = response.json()['id']
         response = self.client.delete(f'/api/v1/category/{category + 1}/',
                                       **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 404)
 
         # # 권한이 없는 pk로 삭제
         response = self.client.delete(f'/api/v1/category/{category}/',
                                       **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 403)
 
     def test_success_category_update_put(self):
@@ -177,21 +174,21 @@ class CategoryTest(TestCase):
 
         response = self.client.post('/api/v1/category/', params, format='json',
                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         category = response.json()['id']
 
         # 이름 변경
         params["name"] = "test123123"
         response = self.client.put(f'/api/v1/category/{category}/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
         # favorite 변경
         params["is_favorited"] = "true"
         response = self.client.put(f'/api/v1/category/{category}/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
     def test_fail_category_update_put(self):
@@ -213,13 +210,13 @@ class CategoryTest(TestCase):
         params["name"] = "test123123"
         response = self.client.put(f'/api/v1/category/{category + 1}/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 404)
 
         # 권한이 없는 카테고리 업데이트
         response = self.client.put(f'/api/v1/category/{category}/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 403)
 
         # 필드 누락
@@ -228,7 +225,7 @@ class CategoryTest(TestCase):
         }
         response = self.client.put(f'/api/v1/category/{category}/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 400)
 
     def test_success_category_update_patch(self):
@@ -238,14 +235,14 @@ class CategoryTest(TestCase):
 
         response = self.client.post('/api/v1/category/', params, format='json',
                                     **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         category = response.json()['id']
 
         # 이름 변경
         params["name"] = "test123123"
         response = self.client.patch(f'/api/v1/category/{category}/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
         # favorite 변경
@@ -254,7 +251,7 @@ class CategoryTest(TestCase):
         }
         response = self.client.patch(f'/api/v1/category/{category}/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
     def test_success_category_order_change(self):
@@ -269,12 +266,12 @@ class CategoryTest(TestCase):
         }
         response = self.client.patch(f'/api/v1/category/50/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['order'], 3)
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
 
         params = {
             "name": "느으으아아아앙",
@@ -282,23 +279,23 @@ class CategoryTest(TestCase):
         }
         response = self.client.put(f'/api/v1/category/49/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['order'], 1)
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
 
         params = {
             "is_favorited": "true"
         }
         response = self.client.patch(f'/api/v1/category/48/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
 
     def test_fail_category_order_change(self):
         '''
@@ -320,7 +317,7 @@ class CategoryTest(TestCase):
         }
         response = self.client.patch(f'/api/v1/category/3/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 500)
 
         # 업데이트를 원하는 번호가 현재 최대 번호보다 크다.
@@ -329,7 +326,7 @@ class CategoryTest(TestCase):
         }
         response = self.client.patch(f'/api/v1/category/3/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 500)
 
         # 필드 누락
@@ -338,7 +335,7 @@ class CategoryTest(TestCase):
         }
         response = self.client.put(f'/api/v1/category/3/', params, format='json',
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 400)
 
     def test_category_list_order_by(self):
@@ -359,12 +356,12 @@ class CategoryTest(TestCase):
         }
         response = self.client.patch(f'/api/v1/category/49/', params, format='json',
                                      **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['is_favorited'], True)
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
 
     def test_new_category_create(self):
         '''
@@ -381,10 +378,10 @@ class CategoryTest(TestCase):
             self.assertEqual(response.status_code, 201)
 
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
 
-        print("다른 user########################################################\n\n")
+
 
         for i in range(4):
             params = {
@@ -394,5 +391,5 @@ class CategoryTest(TestCase):
                                         **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
             self.assertEqual(response.status_code, 201)
         response = self.client.get('/api/v1/category/', **{'HTTP_AUTHORIZATION': f'JWT {self.access_token2}'})
-        pprint(response.json())
+
         self.assertEqual(response.status_code, 200)
