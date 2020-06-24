@@ -217,7 +217,6 @@ class UrlTest(TestCase):
                                    **{'HTTP_AUTHORIZATION': f'JWT {self.access_token}'})
         self.assertEqual(response.json()[0]['id'], 1)
         self.assertEqual(response.json()[0]['description'], '호옹이')
-        self.assertEqual(response.json()[1]['description'], None)
 
     def test_fail_url_update(self):
         '''
