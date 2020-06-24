@@ -63,7 +63,7 @@ class UrlListCreateAPIView(generics.ListCreateAPIView):
         raise ServerException('카테고리가 존재하지 않거나 해당 카테고리에 대한 권한이 존재하지 않습니다.')
 
 
-class UrlDestroyAPIView(generics.DestroyAPIView):
+class UrlRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     """
         URL 삭제 API
 
@@ -77,3 +77,6 @@ class UrlDestroyAPIView(generics.DestroyAPIView):
     queryset = Url.objects.all()
     serializer_class = UrlSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
+
+    def put(self, request, *args, **kwargs):
+        raise ServerException('PUT Method는 허용되지 않습니다.')
