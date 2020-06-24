@@ -3,14 +3,13 @@ import string
 
 from django.contrib.auth import login, logout
 from rest_framework import generics, status, views
-from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenVerifyView, TokenRefreshView
 
 from server.exceptions import ServerException
 from server.models.user import User, UserSerializer, UserSignInSerializer
-from server.permissions import IsObjectMe, GoogleAccessToken
+from server.permissions import GoogleAccessToken
 from server.v1.user.custom_serializer import CustomTokenVerifySerializer
 
 
@@ -19,15 +18,15 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
         ## `JWT 필요`
         ## Headers
             - Authorization : JWT <토큰>
-        ## Path Params
-            - id : 유저 id(이메일주소 X)
         ## Body(UPDATE 요청 시)
             - username : 유저네임
             - password : 패스워드(6자리 이상)
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated, IsObjectMe]
+
+    def get_object(self):
+        return self.request.user
 
 
 class SignUpView(generics.CreateAPIView):

@@ -5,7 +5,7 @@ from .views import (UserDetail, SignUpView, SignInView, SignoutView, GoogleSignU
 
 app_name = 'user'
 urlpatterns = [
-    path('<int:pk>/', UserDetail.as_view(), name='user-detail'),
+    path('', UserDetail.as_view(), name='user-detail'),
 
     path('google/sign-up/', GoogleSignUpView.as_view(), name='google_sign_up'),
     path('google/sign-in/', GoogleSignInView.as_view(), name='google_sign_in'),
