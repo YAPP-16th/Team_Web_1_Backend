@@ -19,7 +19,6 @@ import redis
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-secrets = json.load(open(os.path.join(os.path.join(BASE_DIR, 'urlink'), 'secrets.json'), 'rb'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
@@ -110,21 +109,25 @@ WSGI_APPLICATION = 'urlink.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
-DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'urlink_database',  # DB명
-        'USER': secrets['DATABASES_USER'],  # 데이터베이스 계정
-        'PASSWORD': secrets['DATABASES_PASSWORD'],  # 계정 비밀번호
-        'HOST': secrets['DATABASES_HOST'],  # 데이테베이스 주소(IP)
-        'PORT': '3306',  # 데이터베이스 포트(보통은 3306)
+if gethostname().startswith('urlink'):
+    secrets = json.load(open(os.path.join(os.path.join(BASE_DIR, 'urlink'), 'secrets.json'), 'rb'))
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'urlink_database',  # DB명
+            'USER': secrets['DATABASES_USER'],  # 데이터베이스 계정
+            'PASSWORD': secrets['DATABASES_PASSWORD'],  # 계정 비밀번호
+            'HOST': secrets['DATABASES_HOST'],  # 데이테베이스 주소(IP)
+            'PORT': '3306',  # 데이터베이스 포트(보통은 3306)
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
