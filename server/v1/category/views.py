@@ -48,7 +48,7 @@ class CategoryRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView
         ## Body
             - name : 카테고리 이름
             - order : 순서
-            - is_favorited : 즐겨찾기
+            - isFavorited : 즐겨찾기
 
     """
     queryset = Category.objects.all()

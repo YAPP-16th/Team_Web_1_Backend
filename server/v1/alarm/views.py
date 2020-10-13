@@ -33,7 +33,7 @@ class AlarmListCreateAPIView(generics.ListCreateAPIView):
             - category : 카테고리 ID [필수]
             - url : URL ID [필수]
         ## Body
-            - reserved_time : {"year": "연도", "month": "월", "day": "일", "hour": "시간(24시간 형식)", "minute": "분"}
+            - reservedTime : {"year": "연도", "month": "월", "day": "일", "hour": "시간(24시간 형식)", "minute": "분"}
                 - 05월 == 5월, 3분 == 03분 - "0" 유무 상관 X
             - name : 알람명
     """
